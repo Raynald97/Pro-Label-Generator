@@ -29,8 +29,8 @@ import { cn } from "@/lib/utils";
 const schema = z.object({
   name:        z.string().min(1, "Name is required").max(80),
   description: z.string().max(200).optional().or(z.literal("")),
-  width:       z.number({ invalid_type_error: "Required" }).min(10, "Min 10mm").max(500, "Max 500mm"),
-  height:      z.number({ invalid_type_error: "Required" }).min(10, "Min 10mm").max(500, "Max 500mm"),
+  width:       z.number().min(10, "Min 10mm").max(500, "Max 500mm"),
+  height:      z.number().min(10, "Min 10mm").max(500, "Max 500mm"),
   background:  z.string().default("#ffffff"),
 });
 type FormValues = z.infer<typeof schema>;
