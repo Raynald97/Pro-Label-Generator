@@ -40,12 +40,13 @@ const schema = z.object({
     .max(50, "Max 50 characters")
     .optional()
     .or(z.literal("")),
-  thickness: z
-    .union([
-      z.number({ invalid_type_error: "Must be a number" })
-        .positive("Must be greater than 0")
-        .max(200, "Max 200 mm"),
-      z.nan(),
+  
+    thickness: z
+      .union([
+        z.number() // <--- Hapus { invalid_type_error: "..." } di sini
+          .positive("Must be greater than 0")
+          .max(200, "Max 200 mm"),
+        z.nan(),
     ])
     .optional(),
 });
