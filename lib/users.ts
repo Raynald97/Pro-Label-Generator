@@ -21,7 +21,7 @@ export interface AppUser {
 
 const COLLECTION_NAME = "users";
 
-// ─── READ: Ambil Semua Data User ─────────────────────────────────────────────
+// --- READ: Ambil Semua Data User ---------------------------------------------
 export async function getUsers(): Promise<AppUser[]> {
   const q = query(collection(db, COLLECTION_NAME), orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
@@ -39,7 +39,7 @@ export async function getUsers(): Promise<AppUser[]> {
   });
 }
 
-// ─── CREATE: Tambah User Baru ────────────────────────────────────────────────
+// --- CREATE: Tambah User Baru ------------------------------------------------
 export async function createUser(data: Omit<AppUser, "id" | "createdAt">): Promise<AppUser> {
   const now = new Date().toISOString();
   const payload = {
@@ -51,13 +51,13 @@ export async function createUser(data: Omit<AppUser, "id" | "createdAt">): Promi
   return { id: docRef.id, ...payload } as AppUser;
 }
 
-// ─── UPDATE: Edit User ───────────────────────────────────────────────────────
+// --- UPDATE: Edit User -------------------------------------------------------
 export async function updateUser(id: string, data: Partial<Omit<AppUser, "id" | "createdAt">>): Promise<void> {
   const docRef = doc(db, COLLECTION_NAME, id);
   await updateDoc(docRef, { ...data, updatedAt: new Date().toISOString() });
 }
 
-// ─── DELETE: Hapus User ──────────────────────────────────────────────────────
+// --- DELETE: Hapus User ------------------------------------------------------
 export async function deleteUser(id: string): Promise<void> {
   const docRef = doc(db, COLLECTION_NAME, id);
   await deleteDoc(docRef);

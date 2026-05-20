@@ -50,7 +50,7 @@ function normalise(data: DocumentData): DocumentData {
 // 1. GENERIC MASTER DATA CRUD
 // ════════════════════════════════════════════════════════════════════════════
 
-// ─── READ ALL ─────────────────────────────────────────────────────────────────
+// --- READ ALL -----------------------------------------------------------------
 export async function getMasterList<T extends MasterBase>(
   col: MasterCollection
 ): Promise<T[]> {
@@ -59,7 +59,7 @@ export async function getMasterList<T extends MasterBase>(
   return snap.docs.map((d) => ({ id: d.id, ...normalise(d.data()) } as T));
 }
 
-// ─── CREATE ───────────────────────────────────────────────────────────────────
+// --- CREATE -------------------------------------------------------------------
 export async function createMasterItem<T extends MasterBase>(
   col: MasterCollection,
   data: Omit<T, "id" | "createdAt" | "updatedAt">
@@ -70,7 +70,7 @@ export async function createMasterItem<T extends MasterBase>(
   return { id: ref.id, ...payload } as unknown as T;
 }
 
-// ─── UPDATE ───────────────────────────────────────────────────────────────────
+// --- UPDATE -------------------------------------------------------------------
 export async function updateMasterItem<T extends Partial<MasterBase>>(
   col: MasterCollection,
   id: string,
@@ -82,7 +82,7 @@ export async function updateMasterItem<T extends Partial<MasterBase>>(
   });
 }
 
-// ─── DELETE ───────────────────────────────────────────────────────────────────
+// --- DELETE -------------------------------------------------------------------
 export async function deleteMasterItem(
   col: MasterCollection,
   id: string
@@ -94,14 +94,14 @@ export async function deleteMasterItem(
 // 2. FORMULA PROCESS SPECIFIC CRUD
 // ════════════════════════════════════════════════════════════════════════════
 
-// ─── READ ALL FORMULAS ────────────────────────────────────────────────────────
+// --- READ ALL FORMULAS --------------------------------------------------------
 export async function getFormulaProcesses(): Promise<FormulaProcess[]> {
   const q = query(collection(db, "formulaProcesses"), orderBy("kogName", "asc"));
   const snap = await getDocs(q);
   return snap.docs.map((d) => ({ id: d.id, ...normalise(d.data()) } as FormulaProcess));
 }
 
-// ─── LOOKUP FORMULA BY KOG (Used in Production) ───────────────────────────────
+// --- LOOKUP FORMULA BY KOG (Used in Production) -------------------------------
 export async function getFormulaByKogId(kogId: string): Promise<FormulaProcess | null> {
   const q = query(collection(db, "formulaProcesses"), where("kogId", "==", kogId));
   const snap = await getDocs(q);
@@ -109,7 +109,7 @@ export async function getFormulaByKogId(kogId: string): Promise<FormulaProcess |
   return { id: snap.docs[0].id, ...normalise(snap.docs[0].data()) } as FormulaProcess;
 }
 
-// ─── CREATE FORMULA ───────────────────────────────────────────────────────────
+// --- CREATE FORMULA -----------------------------------------------------------
 export async function createFormulaProcess(
   data: FormulaProcessFormData,
   kogs: KoG[],
@@ -140,7 +140,7 @@ export async function createFormulaProcess(
   return { id: ref.id, ...payload } as FormulaProcess;
 }
 
-// ─── UPDATE FORMULA ───────────────────────────────────────────────────────────
+// --- UPDATE FORMULA -----------------------------------------------------------
 export async function updateFormulaProcess(
   id: string,
   data: FormulaProcessFormData,
@@ -167,7 +167,7 @@ export async function updateFormulaProcess(
   });
 }
 
-// ─── DELETE FORMULA ───────────────────────────────────────────────────────────
+// --- DELETE FORMULA -----------------------------------------------------------
 export async function deleteFormulaProcess(id: string): Promise<void> {
   await deleteDoc(doc(db, "formulaProcesses", id));
 }

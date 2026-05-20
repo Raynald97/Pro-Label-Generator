@@ -23,7 +23,7 @@ import {
 import type { Customer, CustomerFormData } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
+// --- VALIDATION SCHEMA --------------------------------------------------------
 
 const schema = z.object({
   name:    z.string().min(1, "Name is required").max(100),
@@ -34,12 +34,12 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-// ─── SORT TYPES ───────────────────────────────────────────────────────────────
+// --- SORT TYPES ---------------------------------------------------------------
 
 type SortKey = "name" | "initial" | "city" | "createdAt";
 type SortDir = "asc" | "desc";
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
+// --- PAGE ---------------------------------------------------------------------
 
 export default function CustomersPage() {
   // Data
@@ -64,7 +64,7 @@ export default function CustomersPage() {
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // -- Load -------------------------------------------------------------------
   async function load() {
     setLoadingData(true);
     try {
@@ -78,14 +78,14 @@ export default function CustomersPage() {
   }
   useEffect(() => { load(); }, []);
 
-  // ── Open add modal ─────────────────────────────────────────────────────────
+  // -- Open add modal ---------------------------------------------------------
   function openAdd() {
     setEditTarget(null);
     reset({ name: "", initial: "", address: "", phone: "", city: "" });
     setModalOpen(true);
   }
 
-  // ── Open edit modal ────────────────────────────────────────────────────────
+  // -- Open edit modal --------------------------------------------------------
   function openEdit(c: Customer) {
     setEditTarget(c);
     reset({
@@ -98,7 +98,7 @@ export default function CustomersPage() {
     setModalOpen(true);
   }
 
-  // ── Save (create or update) ────────────────────────────────────────────────
+  // -- Save (create or update) ------------------------------------------------
   async function onSubmit(values: FormValues) {
     setSaving(true);
     try {
@@ -126,7 +126,7 @@ export default function CustomersPage() {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // -- Delete -----------------------------------------------------------------
   async function onDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -142,7 +142,7 @@ export default function CustomersPage() {
     }
   }
 
-  // ── Sort toggle ────────────────────────────────────────────────────────────
+  // -- Sort toggle ------------------------------------------------------------
   function toggleSort(key: SortKey) {
     setSort((prev) =>
       prev.key === key
@@ -151,7 +151,7 @@ export default function CustomersPage() {
     );
   }
 
-  // ── Filtered + sorted list ─────────────────────────────────────────────────
+  // -- Filtered + sorted list -------------------------------------------------
   const displayed = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = q
@@ -170,7 +170,7 @@ export default function CustomersPage() {
     });
   }, [customers, search, sort]);
 
-  // ─── RENDER ─────────────────────────────────────────────────────────────────
+  // --- RENDER -----------------------------------------------------------------
 
   function SortIcon({ col }: { col: SortKey }) {
     if (sort.key !== col) return <ChevronsUpDown size={12} className="text-slate-600" />;
@@ -333,7 +333,7 @@ export default function CustomersPage() {
         )}
       </div>
 
-      {/* ── ADD / EDIT MODAL ─────────────────────────────────────────────────── */}
+      {/* -- ADD / EDIT MODAL --------------------------------------------------- */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -433,7 +433,7 @@ export default function CustomersPage() {
         </form>
       </Modal>
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────────────────────── */}
+      {/* -- DELETE CONFIRM ------------------------------------------------------ */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

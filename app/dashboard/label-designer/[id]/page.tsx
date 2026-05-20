@@ -48,11 +48,11 @@ import type {
 } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── FONT OPTIONS ─────────────────────────────────────────────────────────────
+// --- FONT OPTIONS -------------------------------------------------------------
 const FONTS = ["Arial", "Arial Narrow", "Helvetica", "Times New Roman", "Courier New", "Georgia", "Verdana", "Tahoma"];
 const FONT_SIZES = [6, 7, 8, 9, 10, 11, 12, 14, 16, 18, 20, 24];
 
-// ─── CATEGORY COLOURS ─────────────────────────────────────────────────────────
+// --- CATEGORY COLOURS ---------------------------------------------------------
 const CAT_COLORS: Record<string, string> = {
   order:      "text-brand-400  bg-brand-500/10  border-brand-500/20",
   glass:      "text-cyan-400   bg-cyan-500/10   border-cyan-500/20",
@@ -61,7 +61,7 @@ const CAT_COLORS: Record<string, string> = {
   static:     "text-slate-400  bg-slate-700/50  border-slate-600/30",
 };
 
-// ─── SMALL UI HELPERS ─────────────────────────────────────────────────────────
+// --- SMALL UI HELPERS ---------------------------------------------------------
 
 function PanelSection({ title, children, defaultOpen = true }: {
   title: string; children: React.ReactNode; defaultOpen?: boolean;
@@ -139,11 +139,11 @@ export default function LabelDesignerEditor({
   const { id } = use(params);
   const router = useRouter();
 
-  // ── Template data ──────────────────────────────────────────────────────────
+  // -- Template data ----------------------------------------------------------
   const [template, setTemplate]     = useState<LabelTemplate | null>(null);
   const [loadingTemplate, setLoadingTemplate] = useState(true);
 
-  // ── History stack (undo/redo) ──────────────────────────────────────────────
+  // -- History stack (undo/redo) ----------------------------------------------
   const [history, setHistory] = useState<HistoryStack>({
     past:    [],
     present: [],
@@ -151,7 +151,7 @@ export default function LabelDesignerEditor({
   });
   const elements = history.present;
 
-  // ── UI state ───────────────────────────────────────────────────────────────
+  // -- UI state ---------------------------------------------------------------
   const [selectedId, setSelectedId]     = useState<string | null>(null);
   const [zoom, setZoom]                 = useState(DEFAULT_ZOOM);
   const [showGrid, setShowGrid]         = useState(true);
@@ -161,7 +161,7 @@ export default function LabelDesignerEditor({
   const [renameOpen, setRenameOpen]     = useState(false);
   const [renameName, setRenameName]     = useState("");
 
-  // ── Drag state (all in a ref — no re-render during drag) ──────────────────
+  // -- Drag state (all in a ref — no re-render during drag) ------------------
   const dragRef = useRef<{
     active:    boolean;
     elementId: string;
@@ -172,10 +172,10 @@ export default function LabelDesignerEditor({
     type:      "move" | "resize-br";
   } | null>(null);
 
-  // ── Canvas ref ────────────────────────────────────────────────────────────
+  // -- Canvas ref ------------------------------------------------------------
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  // ── Load template ──────────────────────────────────────────────────────────
+  // -- Load template ----------------------------------------------------------
   useEffect(() => {
     async function load() {
       try {
@@ -194,19 +194,19 @@ export default function LabelDesignerEditor({
     load();
   }, [id, router]);
 
-  // ── Derived: selected element ──────────────────────────────────────────────
+  // -- Derived: selected element ----------------------------------------------
   const selectedEl = useMemo(
     () => elements.find((e) => e.id === selectedId) ?? null,
     [elements, selectedId]
   );
 
-  // ── Push a new state onto the history stack ────────────────────────────────
+  // -- Push a new state onto the history stack --------------------------------
   const pushHistory = useCallback((next: CanvasElement[]) => {
     setHistory((h) => historyPush(h, next));
     setIsDirty(true);
   }, []);
 
-  // ── Undo / Redo ────────────────────────────────────────────────────────────
+  // -- Undo / Redo ------------------------------------------------------------
   const undo = useCallback(() => {
     setHistory((h) => {
       const next = historyUndo(h);
@@ -223,7 +223,7 @@ export default function LabelDesignerEditor({
     });
   }, []);
 
-  // ── Keyboard shortcuts ─────────────────────────────────────────────────────
+  // -- Keyboard shortcuts -----------------------------------------------------
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       const meta = e.ctrlKey || e.metaKey;
@@ -240,7 +240,7 @@ export default function LabelDesignerEditor({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, undo, redo]);
 
-  // ── Save ───────────────────────────────────────────────────────────────────
+  // -- Save -------------------------------------------------------------------
   async function onSave() {
     if (!template) return;
     setSaving(true);
@@ -255,14 +255,14 @@ export default function LabelDesignerEditor({
     }
   }
 
-  // ── Delete selected ────────────────────────────────────────────────────────
+  // -- Delete selected --------------------------------------------------------
   function deleteSelected() {
     if (!selectedId) return;
     pushHistory(elements.filter((e) => e.id !== selectedId));
     setSelectedId(null);
   }
 
-  // ── Duplicate selected ─────────────────────────────────────────────────────
+  // -- Duplicate selected -----------------------------------------------------
   function duplicateSelected() {
     if (!selectedEl) return;
     const copy: CanvasElement = {
@@ -275,14 +275,14 @@ export default function LabelDesignerEditor({
     setSelectedId(copy.id);
   }
 
-  // ── Update a single element's fields ──────────────────────────────────────
+  // -- Update a single element's fields --------------------------------------
   function updateElement(id: string, patch: Partial<CanvasElement>) {
     pushHistory(
       elements.map((e) => (e.id === id ? { ...e, ...patch } as CanvasElement : e))
     );
   }
 
-  // ── Bring to front / send to back ─────────────────────────────────────────
+  // -- Bring to front / send to back -----------------------------------------
   function bringToFront(id: string) {
     const el  = elements.find((e) => e.id === id);
     if (!el) return;
@@ -294,7 +294,7 @@ export default function LabelDesignerEditor({
     pushHistory([el, ...elements.filter((e) => e.id !== id)]);
   }
 
-  // ── Drop handler: variable token dragged onto canvas ──────────────────────
+  // -- Drop handler: variable token dragged onto canvas ----------------------
   function onCanvasDrop(e: React.DragEvent<HTMLDivElement>) {
     e.preventDefault();
     if (!template || !canvasRef.current) return;
@@ -330,7 +330,7 @@ export default function LabelDesignerEditor({
     setSelectedId(newEl.id);
   }
 
-  // ── Mouse-down on an element: start drag ──────────────────────────────────
+  // -- Mouse-down on an element: start drag ----------------------------------
   function onElementMouseDown(
     e: React.MouseEvent,
     el: CanvasElement,
@@ -403,12 +403,12 @@ export default function LabelDesignerEditor({
     window.addEventListener("mouseup",   onMouseUp);
   }
 
-  // ── Zoom ───────────────────────────────────────────────────────────────────
+  // -- Zoom -------------------------------------------------------------------
   function setZoomClamped(z: number) {
     setZoom(Math.min(4, Math.max(0.3, Math.round(z * 10) / 10)));
   }
 
-  // ─── RENDER ─────────────────────────────────────────────────────────────────
+  // --- RENDER -----------------------------------------------------------------
 
   if (loadingTemplate) {
     return (
@@ -430,7 +430,7 @@ export default function LabelDesignerEditor({
       {/* Full-screen layout — overrides dashboard padding */}
       <div className="fixed inset-0 flex flex-col bg-slate-950 z-[99]" style={{ top: 0, left: 0 }}>
 
-        {/* ── TOOLBAR ─────────────────────────────────────────────────────── */}
+        {/* -- TOOLBAR ------------------------------------------------------- */}
         <div className="flex items-center gap-2 px-3 h-12 bg-slate-900 border-b border-slate-800 shrink-0">
           {/* Back */}
           <button
@@ -534,10 +534,10 @@ export default function LabelDesignerEditor({
           </button>
         </div>
 
-        {/* ── THREE-COLUMN BODY ────────────────────────────────────────────── */}
+        {/* -- THREE-COLUMN BODY ---------------------------------------------- */}
         <div className="flex flex-1 overflow-hidden">
 
-          {/* ── LEFT: VARIABLES PANEL ───────────────────────────────────────── */}
+          {/* -- LEFT: VARIABLES PANEL ----------------------------------------- */}
           <div className="w-52 shrink-0 bg-slate-900 border-r border-slate-800 flex flex-col overflow-hidden">
             <div className="px-3 py-2 border-b border-slate-800">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Elements</p>
@@ -594,7 +594,7 @@ export default function LabelDesignerEditor({
             </div>
           </div>
 
-          {/* ── CENTRE: CANVAS ──────────────────────────────────────────────── */}
+          {/* -- CENTRE: CANVAS ------------------------------------------------ */}
           <div
             className="flex-1 overflow-auto bg-[#111318] flex items-start justify-center p-8"
             onClick={() => setSelectedId(null)}
@@ -654,7 +654,7 @@ export default function LabelDesignerEditor({
             </div>
           </div>
 
-          {/* ── RIGHT: PROPERTIES PANEL ─────────────────────────────────────── */}
+          {/* -- RIGHT: PROPERTIES PANEL --------------------------------------- */}
           <div className="w-56 shrink-0 bg-slate-900 border-l border-slate-800 flex flex-col overflow-hidden">
             <div className="px-3 py-2 border-b border-slate-800 shrink-0">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Properties</p>
@@ -673,7 +673,7 @@ export default function LabelDesignerEditor({
                   <p className="text-slate-500 text-[11px] font-mono mt-0.5">{selectedEl.type}</p>
                 </div>
 
-                {/* ── POSITION & SIZE ─────────────────────────────────────── */}
+                {/* -- POSITION & SIZE --------------------------------------- */}
                 <PanelSection title="Position & Size">
                   <div className="grid grid-cols-2 gap-1.5">
                     <PropRow label="X">
@@ -707,7 +707,7 @@ export default function LabelDesignerEditor({
                   </div>
                 </PanelSection>
 
-                {/* ── TEXT PROPERTIES ─────────────────────────────────────── */}
+                {/* -- TEXT PROPERTIES --------------------------------------- */}
                 {selectedEl.type === "text" && (() => {
                   const el = selectedEl as TextElement;
                   return (
@@ -839,7 +839,7 @@ export default function LabelDesignerEditor({
                   );
                 })()}
 
-                {/* ── IMAGE PROPERTIES ────────────────────────────────────── */}
+                {/* -- IMAGE PROPERTIES -------------------------------------- */}
                 {selectedEl.type === "image" && (() => {
                   const el = selectedEl as ImageElement;
                   return (
@@ -864,7 +864,7 @@ export default function LabelDesignerEditor({
                   );
                 })()}
 
-                {/* ── LINE PROPERTIES ─────────────────────────────────────── */}
+                {/* -- LINE PROPERTIES --------------------------------------- */}
                 {selectedEl.type === "line" && (() => {
                   const el = selectedEl as LineElement;
                   return (
@@ -902,7 +902,7 @@ export default function LabelDesignerEditor({
                   );
                 })()}
 
-                {/* ── ACTIONS ─────────────────────────────────────────────── */}
+                {/* -- ACTIONS ----------------------------------------------- */}
                 <PanelSection title="Actions">
                   <button
                     onClick={() => updateElement(selectedEl.id, { locked: !selectedEl.locked })}
@@ -949,7 +949,7 @@ export default function LabelDesignerEditor({
         </div>
       </div>
 
-      {/* ── RENAME MODAL (lightweight — no Modal component to avoid portal issues) */}
+      {/* -- RENAME MODAL (lightweight — no Modal component to avoid portal issues) */}
       {renameOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/70" onClick={() => setRenameOpen(false)} />
@@ -981,7 +981,7 @@ export default function LabelDesignerEditor({
         </div>
       )}
 
-      {/* ── DELETE ELEMENT CONFIRM ────────────────────────────────────────────── */}
+      {/* -- DELETE ELEMENT CONFIRM ---------------------------------------------- */}
       <ConfirmDialog
         open={deleteConfirm}
         onClose={() => setDeleteConfirm(false)}
@@ -1057,7 +1057,7 @@ function CanvasElementRenderer({
     outlineOffset: "1px",
   } : {};
 
-  // ── Text ──────────────────────────────────────────────────────────────────
+  // -- Text ------------------------------------------------------------------
   if (el.type === "text") {
     const t = el as TextElement;
     return (
@@ -1097,7 +1097,7 @@ function CanvasElementRenderer({
     );
   }
 
-  // ── Image ─────────────────────────────────────────────────────────────────
+  // -- Image -----------------------------------------------------------------
   if (el.type === "image") {
     const img = el as ImageElement;
     return (
@@ -1125,7 +1125,7 @@ function CanvasElementRenderer({
     );
   }
 
-  // ── Line ──────────────────────────────────────────────────────────────────
+  // -- Line ------------------------------------------------------------------
   if (el.type === "line") {
     const ln = el as LineElement;
     return (
@@ -1146,7 +1146,7 @@ function CanvasElementRenderer({
   return null;
 }
 
-// ── Bottom-right resize handle ────────────────────────────────────────────────
+// -- Bottom-right resize handle ------------------------------------------------
 
 function ResizeHandle({ onMouseDown }: { onMouseDown: (e: React.MouseEvent) => void }) {
   return (

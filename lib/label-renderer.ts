@@ -38,12 +38,12 @@ export function resolveTokens(
   batch?: { soNumber: string; customerName: string; customerInitial: string }
 ): ResolvedValues {
   
-  // ─── 1. Bikin teks gabungan yang akan muncul kalau QR di-scan
+  // --- 1. Bikin teks gabungan yang akan muncul kalau QR di-scan
   // Kita menggunakan (label as any) untuk menghindari error TypeScript jika type index.ts belum terupdate sempurna
   const kogNameStr = (label as any).kogName || label.kogInitial;
   const qrData = `SO: ${label.soNumber}\nRev: R${label.revision}\nCustomer: ${label.customerInitial}\nKoG: ${kogNameStr}\nSize: ${label.dimensionW}x${label.dimensionH} mm\nThickness: ${label.thicknessFormatted}\nProcesses: ${label.processNames.join(", ")}`;
   
-  // ─── 2. Ubah teks tersebut jadi URL Gambar QR Code via API
+  // --- 2. Ubah teks tersebut jadi URL Gambar QR Code via API
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(qrData)}&margin=0`;
 
   const text: Record<string, string> = {

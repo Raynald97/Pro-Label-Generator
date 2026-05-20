@@ -383,7 +383,7 @@ function HistoryPageInner() {
       {printData && <PrintSheet labels={printData.labels} template={printData.template} batch={printData.batch} onClose={() => setPrintData(null)} />}
 
       <div className="flex h-full gap-0 animate-fade-in" style={{ minHeight: 0 }}>
-        {/* ── LEFT: BATCH TABLE ─────────────────────────────────────────── */}
+        {/* -- LEFT: BATCH TABLE ------------------------------------------- */}
         <div className={cn("flex flex-col flex-1 min-w-0 transition-all duration-300", drawerOpen && "hidden xl:flex")}>
           <div className="page-header shrink-0 flex items-start justify-between">
             <div>
@@ -414,7 +414,7 @@ function HistoryPageInner() {
 
           <div className="card overflow-hidden flex-1 min-h-0 flex flex-col">
             
-            {/* ── PAGINATION CONTROLS (MOVED TO TOP RIGHT) ────────────────────────── */}
+            {/* -- PAGINATION CONTROLS (MOVED TO TOP RIGHT) -------------------------- */}
             <div className="flex px-5 py-3 border-b border-slate-800 bg-slate-900/80 shrink-0">
               
               {/* ml-auto MENDORONG KOTAK INI KE KANAN MENTOK */}
@@ -503,7 +503,7 @@ function HistoryPageInner() {
           </div>
         </div>
 
-        {/* ── RIGHT: BATCH DETAIL DRAWER ─────────────────────────────────── */}
+        {/* -- RIGHT: BATCH DETAIL DRAWER ----------------------------------- */}
         {drawerOpen && selectedBatch && (
           <div className="w-full xl:w-[700px] shrink-0 border-l border-slate-800 bg-slate-900 shadow-2xl flex flex-col z-20 transition-all duration-300">
             <BatchDrawer batch={selectedBatch} onClose={() => setDrawerOpen(false)} onPrint={handlePrint} onReprint={handleReprint} reprintLoading={reprintLoading} />
@@ -511,7 +511,7 @@ function HistoryPageInner() {
         )}
       </div>
 
-      {/* ── MODAL KONFIRMASI RESET DATA ──────────────────────────────────── */}
+      {/* -- MODAL KONFIRMASI RESET DATA ------------------------------------ */}
       {resetModalOpen && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="w-full max-w-sm bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 p-6">

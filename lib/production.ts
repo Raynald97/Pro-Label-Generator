@@ -162,10 +162,10 @@ export async function generateBatch(
   uid:       string
 ): Promise<LabelBatch> {
 
-  // ── Pre-compute totals ────────────────────────────────────────────────────
+  // -- Pre-compute totals ----------------------------------------------------
   const totalLabels = rows.reduce((sum, r) => sum + r.quantity, 0);
 
-  // ── Build the batch header document ───────────────────────────────────────
+  // -- Build the batch header document ---------------------------------------
   const now = new Date().toISOString();
 
   const batchPayload: Omit<LabelBatch, "id"> = {
@@ -232,14 +232,14 @@ export async function generateBatch(
         markingCode,
         templateId:         header.templateId,
 
-        // ─── 4 DATA BARU DISIMPAN KE FIRESTORE DI SINI ───
+        // --- 4 DATA BARU DISIMPAN KE FIRESTORE DI SINI ---
         processesInitial:   processesInitial,
         // Kita menggunakan "as any" sementara untuk mengakomodasi form UI lama
         // yang mungkin belum mengirimkan data ini
         interlayerInitial:  (row as any).interlayerInitial || "", 
         cutShapeInitial:    (row as any).cutShapeInitial || "",
         projectInitial:     (header as any).projectInitial || "",
-        // ──────────────────────────────────────────────────
+        // --------------------------------------------------
 
         categoryInitial:    row.categoryInitial || null,
         kogInitial:         row.kogInitial,

@@ -71,7 +71,7 @@ export function LabelCanvas({
   );
 }
 
-// ─── SINGLE ELEMENT RENDERER ─────────────────────────────────────────────────
+// --- SINGLE ELEMENT RENDERER -------------------------------------------------
 
 function ElementRenderer({
   el,
@@ -85,12 +85,12 @@ function ElementRenderer({
   const css     = elementToCSS(el, scale);
   const content = resolveElementContent(el, resolved);
 
-  // ── Line ────────────────────────────────────────────────────────────────
+  // -- Line ----------------------------------------------------------------
   if (el.type === "line") {
     return <div style={css} />;
   }
 
-  // ── Image ────────────────────────────────────────────────────────────────
+  // -- Image ----------------------------------------------------------------
   if (el.type === "image") {
     const img = el as ImageElement;
     if (content) {
@@ -122,7 +122,7 @@ function ElementRenderer({
     );
   }
 
-  // ── Text ────────────────────────────────────────────────────────────────
+  // -- Text ----------------------------------------------------------------
   const txt = el as TextElement;
   return (
     <div style={css}>

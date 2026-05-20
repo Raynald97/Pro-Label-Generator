@@ -55,7 +55,7 @@ export const DEFAULT_ZOOM = 1.5;
 // ════════════════════════════════════════════════════════════════════════════
 
 export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
-  // ── Order ──────────────────────────────────────────────────────────────
+  // -- Order --------------------------------------------------------------
   {
     token:       "{{so_number}}",
     label:       "SO Number",
@@ -112,7 +112,7 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     description: 'Prints as "1 of 5", "2 of 5" etc.',
     isImage:     false,
   },
-  // ── Glass ───────────────────────────────────────────────────────────────
+  // -- Glass ---------------------------------------------------------------
   {
     token:       "{{kog_initial}}",
     label:       "KoG Initial",
@@ -183,7 +183,7 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     description: 'e.g. "L1:DG06 L2:DG06"',
     isImage:     false,
   },
-  // ── Production ──────────────────────────────────────────────────────────
+  // -- Production ----------------------------------------------------------
   {
     token:       "{{process_list}}",
     label:       "Process List",
@@ -212,7 +212,7 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     description: 'e.g. "M:SNI[BR8]"',
     isImage:     false,
   },
-  // ── Image ───────────────────────────────────────────────────────────────
+  // -- Image ---------------------------------------------------------------
   {
     token:       "{{logo}}",
     label:       "Logo Image",

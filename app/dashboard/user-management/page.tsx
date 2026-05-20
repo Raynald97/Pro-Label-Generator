@@ -49,7 +49,7 @@ export default function UserSetupPage() {
   const [editingUser, setEditingUser] = useState<Partial<AppUser> | null>(null);
   const [saving, setSaving] = useState(false);
 
-  // ─── LOAD DATA DARI FIREBASE ────────────────────────────────────────────────
+  // --- LOAD DATA DARI FIREBASE ------------------------------------------------
   const loadUsers = useCallback(async () => {
     setLoading(true);
     try {
@@ -64,7 +64,7 @@ export default function UserSetupPage() {
 
   useEffect(() => { loadUsers(); }, [loadUsers]);
 
-  // ─── FILTER PENCARIAN ───────────────────────────────────────────────────────
+  // --- FILTER PENCARIAN -------------------------------------------------------
   const filteredUsers = useMemo(() => {
     return users.filter(u => 
       u.displayName.toLowerCase().includes(search.toLowerCase()) || 
@@ -72,7 +72,7 @@ export default function UserSetupPage() {
     );
   }, [users, search]);
 
-  // ─── FUNGSI SIMPAN & EDIT (FIREBASE) ────────────────────────────────────────
+  // --- FUNGSI SIMPAN & EDIT (FIREBASE) ----------------------------------------
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingUser) return;
@@ -107,7 +107,7 @@ export default function UserSetupPage() {
     }
   };
 
-  // ─── FUNGSI HAPUS (FIREBASE) ────────────────────────────────────────────────
+  // --- FUNGSI HAPUS (FIREBASE) ------------------------------------------------
   const handleDeleteUser = async (id: string, name: string) => {
     if (window.confirm(`Yakin ingin menghapus akses untuk ${name}?`)) {
       try {
@@ -210,7 +210,7 @@ export default function UserSetupPage() {
         </div>
       </div>
 
-      {/* ─── MODAL TAMBAH/EDIT USER (CENTERED) ─────────────────────────────── */}
+      {/* --- MODAL TAMBAH/EDIT USER (CENTERED) ------------------------------- */}
       {modalOpen && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">

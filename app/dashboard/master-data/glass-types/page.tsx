@@ -23,7 +23,7 @@ import {
 import type { GlassType, GlassTypeFormData } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
+// --- VALIDATION SCHEMA --------------------------------------------------------
 
 const schema = z.object({
   name: z
@@ -51,16 +51,16 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-// ─── SORT TYPES ───────────────────────────────────────────────────────────────
+// --- SORT TYPES ---------------------------------------------------------------
 
 type SortKey = "name" | "initial" | "color" | "createdAt";
 type SortDir = "asc" | "desc";
 
-// ─── GLASS COLOR SWATCHES ─────────────────────────────────────────────────────
+// --- GLASS COLOR SWATCHES -----------------------------------------------------
 // Pre-defined common glass tint names for quick selection
 const COLOR_PRESETS = ["Clear", "Bronze", "Grey", "Green", "Blue", "Dark Grey", "Extra Clear"];
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
+// --- PAGE ---------------------------------------------------------------------
 
 export default function GlassTypesPage() {
   const [glassTypes, setGlassTypes]   = useState<GlassType[]>([]);
@@ -86,7 +86,7 @@ export default function GlassTypesPage() {
 
   const watchedColor = watch("color");
 
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // -- Load -------------------------------------------------------------------
   async function load() {
     setLoadingData(true);
     try {
@@ -99,14 +99,14 @@ export default function GlassTypesPage() {
   }
   useEffect(() => { load(); }, []);
 
-  // ── Open add ──────────────────────────────────────────────────────────────
+  // -- Open add --------------------------------------------------------------
   function openAdd() {
     setEditTarget(null);
     reset({ name: "", initial: "", color: "", thickness: undefined });
     setModalOpen(true);
   }
 
-  // ── Open edit ─────────────────────────────────────────────────────────────
+  // -- Open edit -------------------------------------------------------------
   function openEdit(g: GlassType) {
     setEditTarget(g);
     reset({
@@ -118,7 +118,7 @@ export default function GlassTypesPage() {
     setModalOpen(true);
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // -- Save ------------------------------------------------------------------
   async function onSubmit(values: FormValues) {
     setSaving(true);
     try {
@@ -149,7 +149,7 @@ export default function GlassTypesPage() {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // -- Delete -----------------------------------------------------------------
   async function onDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -165,7 +165,7 @@ export default function GlassTypesPage() {
     }
   }
 
-  // ── Sort toggle ────────────────────────────────────────────────────────────
+  // -- Sort toggle ------------------------------------------------------------
   function toggleSort(key: SortKey) {
     setSort((prev) =>
       prev.key === key
@@ -174,7 +174,7 @@ export default function GlassTypesPage() {
     );
   }
 
-  // ── Filtered + sorted ─────────────────────────────────────────────────────
+  // -- Filtered + sorted -----------------------------------------------------
   const displayed = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = q
@@ -193,7 +193,7 @@ export default function GlassTypesPage() {
     });
   }, [glassTypes, search, sort]);
 
-  // ─── SORT ICON ────────────────────────────────────────────────────────────
+  // --- SORT ICON ------------------------------------------------------------
   function SortIcon({ col }: { col: SortKey }) {
     if (sort.key !== col) return <ChevronsUpDown size={12} className="text-slate-600" />;
     return sort.dir === "asc"
@@ -201,7 +201,7 @@ export default function GlassTypesPage() {
       : <ChevronDown size={12} className="text-brand-400" />;
   }
 
-  // ─── TABLE COLUMN DEFS ────────────────────────────────────────────────────
+  // --- TABLE COLUMN DEFS ----------------------------------------------------
   const cols: { key: SortKey | null; label: string; w: string }[] = [
     { key: "name",      label: "Name",      w: ""     },
     { key: "initial",   label: "Initial",   w: "w-28" },
@@ -211,7 +211,7 @@ export default function GlassTypesPage() {
     { key: null,        label: "",          w: "w-20" },
   ];
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────
+  // --- RENDER ---------------------------------------------------------------
   return (
     <RouteGuard requiredPage="master-data">
       <div className="animate-fade-in">
@@ -371,7 +371,7 @@ export default function GlassTypesPage() {
         )}
       </div>
 
-      {/* ── ADD / EDIT MODAL ──────────────────────────────────────────────────── */}
+      {/* -- ADD / EDIT MODAL ---------------------------------------------------- */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -501,7 +501,7 @@ export default function GlassTypesPage() {
         </form>
       </Modal>
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────────────────────── */}
+      {/* -- DELETE CONFIRM ------------------------------------------------------ */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

@@ -1,4 +1,4 @@
-// ─── USER & RBAC TYPES ────────────────────────────────────────────────────────
+// --- USER & RBAC TYPES --------------------------------------------------------
 
 export type AppPage =
   | "master-data"
@@ -69,7 +69,7 @@ export interface AppUser {
 // Firestore document (stored under /users/{uid})
 export interface UserDocument extends AppUser {}
 
-// ─── AUTH CONTEXT TYPES ───────────────────────────────────────────────────────
+// --- AUTH CONTEXT TYPES -------------------------------------------------------
 
 export interface AuthUser {
   uid: string;
@@ -80,7 +80,7 @@ export interface AuthUser {
   isActive: boolean;
 }
 
-// ─── FORM TYPES ───────────────────────────────────────────────────────────────
+// --- FORM TYPES ---------------------------------------------------------------
 
 export interface LoginFormData {
   email: string;
@@ -115,7 +115,7 @@ export interface MasterBase {
   updatedAt: string;   // ISO string
 }
 
-// ─── CUSTOMER ────────────────────────────────────────────────────────────────
+// --- CUSTOMER ----------------------------------------------------------------
 export interface Customer extends MasterBase {
   address?: string;
   phone?: string;
@@ -123,38 +123,38 @@ export interface Customer extends MasterBase {
 }
 export type CustomerFormData = Omit<Customer, "id" | "createdAt" | "updatedAt">;
 
-// ─── PROJECT ──────────────────────────────────────────────────────────────────
+// --- PROJECT ------------------------------------------------------------------
 export interface Project extends MasterBase {}
 export type ProjectFormData = Omit<Project, "id" | "createdAt" | "updatedAt">;
 
-// ─── GLASS TYPE ───────────────────────────────────────────────────────────────
+// --- GLASS TYPE ---------------------------------------------------------------
 export interface GlassType extends MasterBase {
   color?: string;
   thickness?: number; // mm
 }
 export type GlassTypeFormData = Omit<GlassType, "id" | "createdAt" | "updatedAt">;
 
-// ─── KOG (Kind of Glass) ──────────────────────────────────────────────────────
+// --- KOG (Kind of Glass) ------------------------------------------------------
 export interface KoG extends MasterBase {}
 export type KoGFormData = Omit<KoG, "id" | "createdAt" | "updatedAt">;
 
-// ─── CUT SHAPE ────────────────────────────────────────────────────────────────
+// --- CUT SHAPE ----------------------------------------------------------------
 export interface CutShape extends MasterBase {}
 export type CutShapeFormData = Omit<CutShape, "id" | "createdAt" | "updatedAt">;
 
-// ─── PVB ──────────────────────────────────────────────────────────────────────
+// --- PVB ----------------------------------------------------------------------
 export interface PVB extends MasterBase {}
 export type PVBFormData = Omit<PVB, "id" | "createdAt" | "updatedAt">;
 
-// ─── CATEGORY ─────────────────────────────────────────────────────────────────
+// --- CATEGORY -----------------------------------------------------------------
 export interface Category extends MasterBase {}
 export type CategoryFormData = Omit<Category, "id" | "createdAt" | "updatedAt">;
 
-// ─── PROCESS ──────────────────────────────────────────────────────────────────
+// --- PROCESS ------------------------------------------------------------------
 export interface Process extends MasterBase {}
 export type ProcessFormData = Omit<Process, "id" | "createdAt" | "updatedAt">;
 
-// ─── FORMULA PROCESS MAPPING ──────────────────────────────────────────────────
+// --- FORMULA PROCESS MAPPING --------------------------------------------------
 // Maps one KoG → N processes. One formula per KoG (enforced in UI + service).
 // All name/initial fields are snapshots so historical labels stay readable
 // even if the source KoG or Process records are later renamed.
@@ -181,17 +181,17 @@ export type FormulaProcessFormData = {
   processIds: string[];
 };
 
-// ─── EDGE PROCESS ─────────────────────────────────────────────────────────────
+// --- EDGE PROCESS -------------------------------------------------------------
 export interface EdgeProcess extends MasterBase {}
 export type EdgeProcessFormData = Omit<EdgeProcess, "id" | "createdAt" | "updatedAt">;
 
-// ─── ALERT ────────────────────────────────────────────────────────────────────
+// --- ALERT --------------------------------------------------------------------
 export interface Alert extends MasterBase {
   symbol: string; // Google Material Symbol name
 }
 export type AlertFormData = Omit<Alert, "id" | "createdAt" | "updatedAt">;
 
-// ─── LOGO ─────────────────────────────────────────────────────────────────────
+// --- LOGO ---------------------------------------------------------------------
 export interface Logo {
   id: string;
   name: string;
@@ -202,14 +202,14 @@ export interface Logo {
 }
 export type LogoFormData = { name: string; file?: File };
 
-// ─── MARKING ──────────────────────────────────────────────────────────────────
+// --- MARKING ------------------------------------------------------------------
 export interface Marking extends MasterBase {
   imageUrl?: string;
   imagePath?: string;
 }
 export type MarkingFormData = { name: string; initial: string; file?: File };
 
-// ─── MASTER DATA COLLECTION NAMES (Firestore) ────────────────────────────────
+// --- MASTER DATA COLLECTION NAMES (Firestore) --------------------------------
 export type MasterCollection =
   | "customers"
   | "projects"
@@ -229,7 +229,7 @@ export type MasterCollection =
 // LABEL DESIGNER TYPES
 // ════════════════════════════════════════════════════════════════════════════
 
-// ─── VARIABLE TOKENS ─────────────────────────────────────────────────────────
+// --- VARIABLE TOKENS ---------------------------------------------------------
 // These are the placeholder tokens users can drop onto a canvas.
 // At print-time the Production module substitutes real values.
 
@@ -269,7 +269,7 @@ export interface VariableDefinition {
   isImage:     boolean;
 }
 
-// ─── CANVAS ELEMENTS (discriminated union) ────────────────────────────────────
+// --- CANVAS ELEMENTS (discriminated union) ------------------------------------
 // All coordinates and dimensions are stored in mm.
 // The renderer multiplies by MM_TO_PX * zoom to get screen pixels.
 
@@ -314,7 +314,7 @@ export interface LineElement extends BaseElement {
 
 export type CanvasElement = TextElement | ImageElement | LineElement;
 
-// ─── TEMPLATE ────────────────────────────────────────────────────────────────
+// --- TEMPLATE ----------------------------------------------------------------
 
 export interface LabelTemplate {
   id:          string;
@@ -337,7 +337,7 @@ export type LabelTemplateFormData = {
   background:  string;
 };
 
-// ─── DESIGNER UI STATE (not persisted) ───────────────────────────────────────
+// --- DESIGNER UI STATE (not persisted) ---------------------------------------
 
 export interface DesignerState {
   selectedId:   string | null;
@@ -349,7 +349,7 @@ export interface DesignerState {
   historyIndex: number;
 }
 
-// ─── PRESET SIZES (quick-select when creating a template) ────────────────────
+// --- PRESET SIZES (quick-select when creating a template) --------------------
 
 export interface PresetSize {
   label:  string;
@@ -370,7 +370,7 @@ export const PRESET_SIZES: PresetSize[] = [
 // PRODUCTION MODULE TYPES
 // ════════════════════════════════════════════════════════════════════════════
 
-// ─── SUB-TYPES ────────────────────────────────────────────────────────────────
+// --- SUB-TYPES ----------------------------------------------------------------
 
 export interface ThicknessCalc {
   l1: number;            // required, e.g. 6
@@ -387,7 +387,7 @@ export interface GlassLayer {
 
 export type EdgeSide = "B" | "T" | "L" | "R";
 
-// ─── LINE ITEM ROW (UI state only — not persisted directly) ──────────────────
+// --- LINE ITEM ROW (UI state only — not persisted directly) ------------------
 // One row in the Header+LineItems form. Gets exploded into N label documents
 // on "Generate Batch" where N = quantity.
 
@@ -429,7 +429,7 @@ export interface LineItemRow {
   quantity:        number;   // number of pieces = number of labels for this row
 }
 
-// ─── BATCH HEADER (UI state) ──────────────────────────────────────────────────
+// --- BATCH HEADER (UI state) --------------------------------------------------
 
 export interface BatchHeader {
   soNumber:       string;
@@ -449,7 +449,7 @@ export interface BatchHeader {
   templateName:   string;    // snapshot
 }
 
-// ─── FIRESTORE: LABEL BATCH DOCUMENT ─────────────────────────────────────────
+// --- FIRESTORE: LABEL BATCH DOCUMENT -----------------------------------------
 
 export interface LabelBatch {
   id:               string;
@@ -476,7 +476,7 @@ export interface LabelBatch {
   createdBy:        string;
 }
 
-// ─── FIRESTORE: INDIVIDUAL LABEL DOCUMENT ─────────────────────────────────────
+// --- FIRESTORE: INDIVIDUAL LABEL DOCUMENT -------------------------------------
 
 export interface LabelRecord {
   id:                 string;
@@ -518,7 +518,7 @@ export interface LabelRecord {
   createdAt:          string;
 }
 
-// ─── PROCESS MASTER (used in checklist) ───────────────────────────────────────
+// --- PROCESS MASTER (used in checklist) ---------------------------------------
 
 export interface ProcessWithCheck extends Process {
   checked:       boolean;

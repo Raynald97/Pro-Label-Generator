@@ -3,7 +3,7 @@ import { getAuth, connectAuthEmulator, Auth } from "firebase/auth";
 import { getFirestore, connectFirestoreEmulator, Firestore } from "firebase/firestore";
 import { getStorage, connectStorageEmulator, FirebaseStorage } from "firebase/storage";
 
-// ─── CONFIG ───────────────────────────────────────────────────────────────────
+// --- CONFIG -------------------------------------------------------------------
 // All values come from .env.local — see .env.local.example for the full list.
 
 const firebaseConfig = {
@@ -28,7 +28,7 @@ if (process.env.NODE_ENV === "development") {
   }
 }
 
-// ─── SINGLETON INITIALISATION ─────────────────────────────────────────────────
+// --- SINGLETON INITIALISATION -------------------------------------------------
 // Next.js hot-reload can call this module multiple times; guard against re-init.
 
 let app: FirebaseApp;
@@ -42,7 +42,7 @@ if (getApps().length === 0) {
   db      = getFirestore(app);
   storage = getStorage(app);
 
-  // ── Optional: connect to local Firebase Emulator Suite ────────────────────
+  // -- Optional: connect to local Firebase Emulator Suite --------------------
   // Set NEXT_PUBLIC_USE_FIREBASE_EMULATOR=true in .env.local to enable.
   if (
     typeof window !== "undefined" &&

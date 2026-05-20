@@ -17,7 +17,7 @@ import {
 import { db } from "./firebase";
 import type { AppUser, UserDocument, UserPermissions, UserRole } from "@/types";
 
-// ─── GET SINGLE USER DOCUMENT ─────────────────────────────────────────────────
+// --- GET SINGLE USER DOCUMENT -------------------------------------------------
 
 export async function getUserDocument(uid: string): Promise<UserDocument | null> {
   const snap = await getDoc(doc(db, "users", uid));
@@ -25,7 +25,7 @@ export async function getUserDocument(uid: string): Promise<UserDocument | null>
   return snap.data() as UserDocument;
 }
 
-// ─── GET ALL USER DOCUMENTS (admin only) ──────────────────────────────────────
+// --- GET ALL USER DOCUMENTS (admin only) --------------------------------------
 
 export async function getAllUsers(): Promise<UserDocument[]> {
   const q = query(collection(db, "users"), orderBy("createdAt", "desc"));
@@ -33,7 +33,7 @@ export async function getAllUsers(): Promise<UserDocument[]> {
   return snap.docs.map((d) => d.data() as UserDocument);
 }
 
-// ─── CREATE USER DOCUMENT ─────────────────────────────────────────────────────
+// --- CREATE USER DOCUMENT -----------------------------------------------------
 
 export async function createUserDocument(
   uid: string,
@@ -58,7 +58,7 @@ export async function createUserDocument(
   await setDoc(doc(db, "users", uid), userDoc);
 }
 
-// ─── UPDATE USER PERMISSIONS & ACTIVE STATE ───────────────────────────────────
+// --- UPDATE USER PERMISSIONS & ACTIVE STATE -----------------------------------
 
 export async function updateUserPermissions(
   uid: string,
@@ -68,7 +68,7 @@ export async function updateUserPermissions(
   await updateDoc(doc(db, "users", uid), { permissions, isActive });
 }
 
-// ─── UPDATE DISPLAY NAME ──────────────────────────────────────────────────────
+// --- UPDATE DISPLAY NAME ------------------------------------------------------
 
 export async function updateUserDisplayName(
   uid: string,
@@ -77,7 +77,7 @@ export async function updateUserDisplayName(
   await updateDoc(doc(db, "users", uid), { displayName });
 }
 
-// ─── RESOLVE FIREBASE USER → APP USER ────────────────────────────────────────
+// --- RESOLVE FIREBASE USER → APP USER ----------------------------------------
 
 export async function resolveAuthUser(firebaseUser: {
   uid: string;
@@ -99,7 +99,7 @@ export async function resolveAuthUser(firebaseUser: {
   return result;
 }
 
-// ─── PERMISSION CHECK ─────────────────────────────────────────────────────────
+// --- PERMISSION CHECK ---------------------------------------------------------
 
 export function hasPermission(user: AppUser | null, page: string): boolean {
   if (!user) return false;

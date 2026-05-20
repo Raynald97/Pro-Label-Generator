@@ -23,14 +23,14 @@ import {
 import type { Alert, AlertFormData } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── GOOGLE SYMBOLS PRESETS ───────────────────────────────────────────────────
+// --- GOOGLE SYMBOLS PRESETS ---------------------------------------------------
 // Daftar ikon umum untuk peringatan (bisa ditambah sesuai kebutuhan)
 const SYMBOL_PRESETS = [
   "warning", "error", "info", "gpp_maybe", "dangerous", 
   "science", "local_fire_department", "water_drop", "front_hand", "visibility_off"
 ];
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
+// --- VALIDATION SCHEMA --------------------------------------------------------
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(100, "Max 100 characters"),
   initial: z.string().min(1, "Initial is required").max(10, "Max 10 characters").transform((v) => v.toUpperCase()),

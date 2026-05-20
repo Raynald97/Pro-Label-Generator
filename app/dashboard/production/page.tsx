@@ -58,7 +58,7 @@ function Field({ label, required, error, children }: {
   );
 }
 
-// ─── SEARCHABLE DROPDOWN (ANTI-BOCOR) ────────────────────────────────────────
+// --- SEARCHABLE DROPDOWN (ANTI-BOCOR) ----------------------------------------
 
 interface Option { id: string; label: string; sub?: string; }
 
@@ -186,7 +186,7 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
   );
 }
 
-// ─── NUMBER INPUT ─────────────────────────────────────────────────────────────
+// --- NUMBER INPUT -------------------------------------------------------------
 
 function NumInput({ value, onChange, min = 0, step = 1, suffix, className, placeholder }: {
   value: number | ""; onChange: (v: number) => void;
@@ -349,7 +349,7 @@ function LineItemRowCard({
 
   return (
     <div className="card transition-all">
-      {/* ── Row header ──────────────────────────────────────────────────────── */}
+      {/* -- Row header -------------------------------------------------------- */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-800 bg-slate-800/40">
         <div className="w-6 h-6 rounded-full bg-brand-600/20 border border-brand-600/30 flex items-center justify-center shrink-0">
           <span className="text-brand-400 text-[11px] font-bold">{rowNumber}</span>
@@ -387,7 +387,7 @@ function LineItemRowCard({
         </div>
       </div>
 
-      {/* ── Row body (2 Columns Grid) ───────────────────────────────────────── */}
+      {/* -- Row body (2 Columns Grid) ----------------------------------------- */}
       {!collapsed && (
         <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
           
@@ -661,7 +661,7 @@ export default function ProductionPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // ── Master data ────────────────────────────────────────────────────────────
+  // -- Master data ------------------------------------------------------------
   const [customers,     setCustomers]     = useState<Customer[]>([]);
   const [projects,      setProjects]      = useState<Project[]>([]);
   const [categories,    setCategories]    = useState<Category[]>([]);
@@ -676,7 +676,7 @@ export default function ProductionPage() {
   const [templates,     setTemplates]     = useState<LabelTemplate[]>([]);
   const [masterLoading, setMasterLoading] = useState(true);
 
-  // ── Form state ─────────────────────────────────────────────────────────────
+  // -- Form state -------------------------------------------------------------
   const [header, setHeader] = useState<Partial<BatchHeader> & { projectId?: string, projectInitial?: string }>({
     soNumber:        "",
     revision:        1,
@@ -702,7 +702,7 @@ export default function ProductionPage() {
   const [generating, setGenerating] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
 
-  // ── Load all master data in parallel ──────────────────────────────────────
+  // -- Load all master data in parallel --------------------------------------
   useEffect(() => {
     async function load() {
       setMasterLoading(true);
@@ -817,7 +817,7 @@ export default function ProductionPage() {
     <RouteGuard requiredPage="production">
       <div className="animate-fade-in max-w-5xl mx-auto">
 
-        {/* ── PAGE HEADER ─────────────────────────────────────────────────── */}
+        {/* -- PAGE HEADER --------------------------------------------------- */}
         <div className="page-header">
           <div>
             <h1 className="page-title">Production</h1>

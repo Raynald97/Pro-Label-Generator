@@ -22,12 +22,12 @@ import {
 import type { FormulaProcess, KoG, Process } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── SORT TYPES ───────────────────────────────────────────────────────────────
+// --- SORT TYPES ---------------------------------------------------------------
 
 type SortKey = "kogName" | "kogInitial" | "updatedAt";
 type SortDir = "asc" | "desc";
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
+// --- HELPERS ------------------------------------------------------------------
 
 function fmtDate(iso: string) {
   return new Date(iso).toLocaleDateString("id-ID", {
@@ -35,35 +35,35 @@ function fmtDate(iso: string) {
   });
 }
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
+// --- PAGE ---------------------------------------------------------------------
 
 export default function FormulaProcessPage() {
 
-  // ── Master data ────────────────────────────────────────────────────────────
+  // -- Master data ------------------------------------------------------------
   const [formulas,  setFormulas]  = useState<FormulaProcess[]>([]);
   const [kogs,      setKogs]      = useState<KoG[]>([]);
   const [processes, setProcesses] = useState<Process[]>([]);
   const [loading,   setLoading]   = useState(true);
 
-  // ── Modal / confirm state ──────────────────────────────────────────────────
+  // -- Modal / confirm state --------------------------------------------------
   const [modalOpen,     setModalOpen]     = useState(false);
   const [editTarget,    setEditTarget]    = useState<FormulaProcess | null>(null);
   const [deleteTarget,  setDeleteTarget]  = useState<FormulaProcess | null>(null);
   const [saving,        setSaving]        = useState(false);
   const [deleting,      setDeleting]      = useState(false);
 
-  // ── Form state (controlled — no react-hook-form needed for this UI) ────────
+  // -- Form state (controlled — no react-hook-form needed for this UI) --------
   const [selectedKogId,    setSelectedKogId]    = useState<string>("");
   const [selectedProcessIds, setSelectedProcessIds] = useState<Set<string>>(new Set());
   const [kogSearch,        setKogSearch]        = useState("");
   const [processSearch,    setProcessSearch]    = useState("");
   const [formError,        setFormError]        = useState<string | null>(null);
 
-  // ── Table search & sort ────────────────────────────────────────────────────
+  // -- Table search & sort ----------------------------------------------------
   const [search, setSearch] = useState("");
   const [sort,   setSort]   = useState<{ key: SortKey; dir: SortDir }>({ key: "kogName", dir: "asc" });
 
-  // ── Load all data in parallel ──────────────────────────────────────────────
+  // -- Load all data in parallel ----------------------------------------------
   const load = useCallback(async () => {
     setLoading(true);
     try {
@@ -84,13 +84,13 @@ export default function FormulaProcessPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  // ── KoGs that already have a formula (used to block re-selection) ──────────
+  // -- KoGs that already have a formula (used to block re-selection) ----------
   const usedKogIds = useMemo(
     () => new Set(formulas.map((f) => f.kogId)),
     [formulas]
   );
 
-  // ── KoG options for the modal dropdown ────────────────────────────────────
+  // -- KoG options for the modal dropdown ------------------------------------
   // When editing, the current KoG is always available; all others that are
   // already mapped are greyed out and non-selectable.
   const kogOptions = useMemo(() => {
@@ -100,7 +100,7 @@ export default function FormulaProcessPage() {
     );
   }, [kogs, kogSearch]);
 
-  // ── Process options for the checklist ─────────────────────────────────────
+  // -- Process options for the checklist -------------------------------------
   const processOptions = useMemo(() => {
     const q = processSearch.toLowerCase();
     return processes.filter(
@@ -108,7 +108,7 @@ export default function FormulaProcessPage() {
     );
   }, [processes, processSearch]);
 
-  // ── Open add modal ─────────────────────────────────────────────────────────
+  // -- Open add modal ---------------------------------------------------------
   function openAdd() {
     setEditTarget(null);
     setSelectedKogId("");
@@ -119,7 +119,7 @@ export default function FormulaProcessPage() {
     setModalOpen(true);
   }
 
-  // ── Open edit modal ────────────────────────────────────────────────────────
+  // -- Open edit modal --------------------------------------------------------
   function openEdit(f: FormulaProcess) {
     setEditTarget(f);
     setSelectedKogId(f.kogId);
@@ -130,7 +130,7 @@ export default function FormulaProcessPage() {
     setModalOpen(true);
   }
 
-  // ── Process checklist toggle ───────────────────────────────────────────────
+  // -- Process checklist toggle -----------------------------------------------
   function toggleProcess(pid: string) {
     setSelectedProcessIds((prev) => {
       const next = new Set(prev);
@@ -148,7 +148,7 @@ export default function FormulaProcessPage() {
     setSelectedProcessIds(new Set());
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // -- Save ------------------------------------------------------------------
   async function onSave() {
     setFormError(null);
 
@@ -190,7 +190,7 @@ export default function FormulaProcessPage() {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // -- Delete -----------------------------------------------------------------
   async function onDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -206,7 +206,7 @@ export default function FormulaProcessPage() {
     }
   }
 
-  // ── Sort toggle ────────────────────────────────────────────────────────────
+  // -- Sort toggle ------------------------------------------------------------
   function toggleSort(key: SortKey) {
     setSort((prev) =>
       prev.key === key
@@ -215,7 +215,7 @@ export default function FormulaProcessPage() {
     );
   }
 
-  // ── Filtered + sorted table data ───────────────────────────────────────────
+  // -- Filtered + sorted table data -------------------------------------------
   const displayed = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = q
@@ -234,10 +234,10 @@ export default function FormulaProcessPage() {
     });
   }, [formulas, search, sort]);
 
-  // ─── DERIVED: selected KoG object ─────────────────────────────────────────
+  // --- DERIVED: selected KoG object -----------------------------------------
   const selectedKog = kogs.find((k) => k.id === selectedKogId) ?? null;
 
-  // ─── SORT ICON ────────────────────────────────────────────────────────────
+  // --- SORT ICON ------------------------------------------------------------
   function SortIcon({ col }: { col: SortKey }) {
     if (sort.key !== col) return <ChevronsUpDown size={12} className="text-slate-600" />;
     return sort.dir === "asc"
@@ -245,12 +245,12 @@ export default function FormulaProcessPage() {
       : <ChevronDown size={12} className="text-brand-400" />;
   }
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────
+  // --- RENDER ---------------------------------------------------------------
   return (
     <RouteGuard requiredPage="formula-process">
       <div className="animate-fade-in">
 
-        {/* ── PAGE HEADER ───────────────────────────────────────────────────── */}
+        {/* -- PAGE HEADER ----------------------------------------------------- */}
         <div className="page-header">
           <div>
             <h1 className="page-title">Formula Process</h1>
@@ -274,7 +274,7 @@ export default function FormulaProcessPage() {
           </button>
         </div>
 
-        {/* ── PREREQ WARNING ────────────────────────────────────────────────── */}
+        {/* -- PREREQ WARNING -------------------------------------------------- */}
         {!loading && (kogs.length === 0 || processes.length === 0) && (
           <div className="flex items-start gap-3 px-4 py-3 mb-5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm">
             <AlertCircle size={16} className="mt-0.5 shrink-0" />
@@ -288,7 +288,7 @@ export default function FormulaProcessPage() {
           </div>
         )}
 
-        {/* ── SEARCH ────────────────────────────────────────────────────────── */}
+        {/* -- SEARCH ---------------------------------------------------------- */}
         <div className="mb-4">
           <SearchInput
             value={search}
@@ -298,7 +298,7 @@ export default function FormulaProcessPage() {
           />
         </div>
 
-        {/* ── TABLE ─────────────────────────────────────────────────────────── */}
+        {/* -- TABLE ----------------------------------------------------------- */}
         <div className="card overflow-hidden">
           {loading ? (
             <div className="flex items-center justify-center py-16 gap-3">
@@ -449,7 +449,7 @@ export default function FormulaProcessPage() {
       >
         <div className="space-y-5">
 
-          {/* ── FORM ERROR BANNER ─────────────────────────────────────────────── */}
+          {/* -- FORM ERROR BANNER ----------------------------------------------- */}
           {formError && (
             <div className="flex items-start gap-3 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm animate-fade-in">
               <AlertCircle size={15} className="mt-0.5 shrink-0" />
@@ -457,12 +457,12 @@ export default function FormulaProcessPage() {
             </div>
           )}
 
-          {/* ── TWO COLUMN BODY ─────────────────────────────────────────────── */}
+          {/* -- TWO COLUMN BODY ----------------------------------------------- */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-            {/* ┌─────────────────────────────────────────────────────────────┐
+            {/* ┌-------------------------------------------------------------┐
                 │  LEFT — KoG SELECTOR                                        │
-                └─────────────────────────────────────────────────────────────┘ */}
+                └-------------------------------------------------------------┘ */}
             <div className="flex flex-col gap-3">
               <div>
                 <label className="form-label">
@@ -562,9 +562,9 @@ export default function FormulaProcessPage() {
               </div>
             </div>
 
-            {/* ┌─────────────────────────────────────────────────────────────┐
+            {/* ┌-------------------------------------------------------------┐
                 │  RIGHT — PROCESS CHECKLIST                                   │
-                └─────────────────────────────────────────────────────────────┘ */}
+                └-------------------------------------------------------------┘ */}
             <div className="flex flex-col gap-3">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
@@ -668,7 +668,7 @@ export default function FormulaProcessPage() {
             </div>
           </div>
 
-          {/* ── SUMMARY PREVIEW ───────────────────────────────────────────────── */}
+          {/* -- SUMMARY PREVIEW ------------------------------------------------- */}
           {selectedKog && selectedProcessIds.size > 0 && (
             <div className="rounded-lg border border-slate-700/60 bg-slate-800/30 p-3">
               <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
@@ -700,7 +700,7 @@ export default function FormulaProcessPage() {
             </div>
           )}
 
-          {/* ── ACTIONS ───────────────────────────────────────────────────────── */}
+          {/* -- ACTIONS --------------------------------------------------------- */}
           <div className="flex justify-end gap-3 pt-1">
             <button
               type="button"
@@ -724,7 +724,7 @@ export default function FormulaProcessPage() {
         </div>
       </Modal>
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────────────────────── */}
+      {/* -- DELETE CONFIRM ------------------------------------------------------ */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

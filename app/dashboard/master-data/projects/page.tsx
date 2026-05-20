@@ -23,7 +23,7 @@ import {
 import type { Project, ProjectFormData } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
+// --- VALIDATION SCHEMA --------------------------------------------------------
 
 const schema = z.object({
   name:    z.string().min(1, "Name is required").max(100, "Max 100 characters"),
@@ -35,12 +35,12 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-// ─── SORT TYPES ───────────────────────────────────────────────────────────────
+// --- SORT TYPES ---------------------------------------------------------------
 
 type SortKey = "name" | "initial" | "createdAt";
 type SortDir = "asc" | "desc";
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
+// --- PAGE ---------------------------------------------------------------------
 
 export default function ProjectsPage() {
   const [projects, setProjects]       = useState<Project[]>([]);
@@ -62,7 +62,7 @@ export default function ProjectsPage() {
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // -- Load -------------------------------------------------------------------
   async function load() {
     setLoadingData(true);
     try {
@@ -75,21 +75,21 @@ export default function ProjectsPage() {
   }
   useEffect(() => { load(); }, []);
 
-  // ── Open add ──────────────────────────────────────────────────────────────
+  // -- Open add --------------------------------------------------------------
   function openAdd() {
     setEditTarget(null);
     reset({ name: "", initial: "" });
     setModalOpen(true);
   }
 
-  // ── Open edit ─────────────────────────────────────────────────────────────
+  // -- Open edit -------------------------------------------------------------
   function openEdit(p: Project) {
     setEditTarget(p);
     reset({ name: p.name, initial: p.initial });
     setModalOpen(true);
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // -- Save ------------------------------------------------------------------
   async function onSubmit(values: FormValues) {
     setSaving(true);
     try {
@@ -113,7 +113,7 @@ export default function ProjectsPage() {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // -- Delete -----------------------------------------------------------------
   async function onDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -129,7 +129,7 @@ export default function ProjectsPage() {
     }
   }
 
-  // ── Sort toggle ────────────────────────────────────────────────────────────
+  // -- Sort toggle ------------------------------------------------------------
   function toggleSort(key: SortKey) {
     setSort((prev) =>
       prev.key === key
@@ -138,7 +138,7 @@ export default function ProjectsPage() {
     );
   }
 
-  // ── Filtered + sorted ─────────────────────────────────────────────────────
+  // -- Filtered + sorted -----------------------------------------------------
   const displayed = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = q
@@ -156,7 +156,7 @@ export default function ProjectsPage() {
     });
   }, [projects, search, sort]);
 
-  // ─── SORT ICON HELPER ─────────────────────────────────────────────────────
+  // --- SORT ICON HELPER -----------------------------------------------------
   function SortIcon({ col }: { col: SortKey }) {
     if (sort.key !== col) return <ChevronsUpDown size={12} className="text-slate-600" />;
     return sort.dir === "asc"
@@ -164,7 +164,7 @@ export default function ProjectsPage() {
       : <ChevronDown size={12} className="text-brand-400" />;
   }
 
-  // ─── TABLE COLUMN DEFS ────────────────────────────────────────────────────
+  // --- TABLE COLUMN DEFS ----------------------------------------------------
   const cols: { key: SortKey | null; label: string; w: string }[] = [
     { key: "name",      label: "Name",    w: ""      },
     { key: "initial",   label: "Initial", w: "w-36"  },
@@ -172,7 +172,7 @@ export default function ProjectsPage() {
     { key: null,        label: "",        w: "w-20"  },
   ];
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────
+  // --- RENDER ---------------------------------------------------------------
   return (
     <RouteGuard requiredPage="master-data">
       <div className="animate-fade-in">
@@ -303,7 +303,7 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      {/* ── ADD / EDIT MODAL ──────────────────────────────────────────────────── */}
+      {/* -- ADD / EDIT MODAL ---------------------------------------------------- */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -372,7 +372,7 @@ export default function ProjectsPage() {
         </form>
       </Modal>
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────────────────────── */}
+      {/* -- DELETE CONFIRM ------------------------------------------------------ */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

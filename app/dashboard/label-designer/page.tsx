@@ -24,7 +24,7 @@ import { PRESET_SIZES } from "@/types";
 import type { LabelTemplate, LabelTemplateFormData, PresetSize } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
+// --- VALIDATION SCHEMA --------------------------------------------------------
 
 const schema = z.object({
   name:        z.string().min(1, "Name is required").max(80),
@@ -35,7 +35,7 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-// ─── MINI CANVAS PREVIEW ──────────────────────────────────────────────────────
+// --- MINI CANVAS PREVIEW ------------------------------------------------------
 
 function TemplatePreview({ template }: { template: LabelTemplate }) {
   const MAX = 180;
@@ -115,7 +115,7 @@ function TemplatePreview({ template }: { template: LabelTemplate }) {
   );
 }
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
+// --- PAGE ---------------------------------------------------------------------
 
 export default function LabelDesignerPage() {
   const router = useRouter();
@@ -217,7 +217,7 @@ export default function LabelDesignerPage() {
     setCreateOpen(true);
   }
 
-  // ─── RENDER ─────────────────────────────────────────────────────────────────
+  // --- RENDER -----------------------------------------------------------------
   return (
     <RouteGuard requiredPage="label-designer">
       <div className="animate-fade-in">
@@ -337,7 +337,7 @@ export default function LabelDesignerPage() {
         )}
       </div>
 
-      {/* ── CUSTOM CENTERED CREATE MODAL ──────────────────────────────────────── */}
+      {/* -- CUSTOM CENTERED CREATE MODAL ---------------------------------------- */}
       {createOpen && (
         <div className="fixed inset-0 z-[999999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
           
@@ -488,7 +488,7 @@ export default function LabelDesignerPage() {
         </div>
       )}
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────────────────────── */}
+      {/* -- DELETE CONFIRM ------------------------------------------------------ */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

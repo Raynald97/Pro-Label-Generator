@@ -37,7 +37,7 @@ export function PrintSheet({ labels, template, batch, onClose }: Props) {
   const styleRef = useRef<HTMLStyleElement | null>(null);
 
   useEffect(() => {
-    // ── 1. Inject @page and print CSS ─────────────────────────────────────
+    // -- 1. Inject @page and print CSS -------------------------------------
     const style        = document.createElement("style");
     style.id           = "label-print-styles";
     style.textContent  = `
@@ -126,7 +126,7 @@ export function PrintSheet({ labels, template, batch, onClose }: Props) {
     document.head.appendChild(style);
     styleRef.current = style;
 
-    // ── 2. Auto-print after fonts settle ──────────────────────────────────
+    // -- 2. Auto-print after fonts settle ----------------------------------
     const t = setTimeout(() => {
       window.print();
       // onClose after print dialog dismisses
@@ -149,7 +149,7 @@ export function PrintSheet({ labels, template, batch, onClose }: Props) {
 
   const content = (
     <div id="label-print-portal">
-      {/* ── Screen toolbar (hidden when printing) ─────────────────────── */}
+      {/* -- Screen toolbar (hidden when printing) ----------------------- */}
       <div className="print-preview-toolbar">
         <div style={{ flex: 1 }}>
           <p style={{ color: "#f1f5f9", fontWeight: 600, fontSize: 14 }}>
@@ -192,7 +192,7 @@ export function PrintSheet({ labels, template, batch, onClose }: Props) {
         </button>
       </div>
 
-      {/* ── Label pages ────────────────────────────────────────────────── */}
+      {/* -- Label pages -------------------------------------------------- */}
       <div className="print-preview-scroll">
         {labels.map((label) => (
           <div

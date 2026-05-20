@@ -18,7 +18,7 @@ import { auth } from "@/lib/firebase";
 import { resolveAuthUser } from "@/lib/auth-helpers";
 import type { AuthUser, AppPage } from "@/types";
 
-// ─── CONTEXT SHAPE ────────────────────────────────────────────────────────────
+// --- CONTEXT SHAPE ------------------------------------------------------------
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -29,7 +29,7 @@ interface AuthContextValue {
   refreshUser: () => Promise<void>;
 }
 
-// ─── DEFAULT / UNAUTHENTICATED STATE ─────────────────────────────────────────
+// --- DEFAULT / UNAUTHENTICATED STATE -----------------------------------------
 
 const AuthContext = createContext<AuthContextValue>({
   user: null,
@@ -40,14 +40,14 @@ const AuthContext = createContext<AuthContextValue>({
   refreshUser: async () => {},
 });
 
-// ─── PROVIDER ─────────────────────────────────────────────────────────────────
+// --- PROVIDER -----------------------------------------------------------------
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
 
-  // ── Resolve Firebase user → Firestore profile ────────────────────────────
+  // -- Resolve Firebase user → Firestore profile ----------------------------
   const resolveAndSet = useCallback(async (fbUser: FirebaseUser | null) => {
     // 🚨 ULTIMATE BYPASS: Abaikan database, langsung jadikan Super Admin!
     setUser({
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setFirebaseUser(fbUser);
   }, []);
 
-  // ── Subscribe to Firebase auth state once ────────────────────────────────
+  // -- Subscribe to Firebase auth state once --------------------------------
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
       await resolveAndSet(fbUser);
@@ -70,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe();
   }, [resolveAndSet]);
 
-  // ── signIn ────────────────────────────────────────────────────────────────
+  // -- signIn ----------------------------------------------------------------
   const signIn = useCallback(async (email: string, password: string) => {
     let fbUser: FirebaseUser;
     try {
@@ -104,19 +104,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // State is updated by the onAuthStateChanged listener
   }, []);
 
-  // ── signOut ───────────────────────────────────────────────────────────────
+  // -- signOut ---------------------------------------------------------------
   const signOut = useCallback(async () => {
     await firebaseSignOut(auth);
     setUser(null);
     setFirebaseUser(null);
   }, []);
 
-  // ── refreshUser ───────────────────────────────────────────────────────────
+  // -- refreshUser -----------------------------------------------------------
   const refreshUser = useCallback(async () => {
     if (firebaseUser) await resolveAndSet(firebaseUser);
   }, [firebaseUser, resolveAndSet]);
 
-  // ── canAccess ─────────────────────────────────────────────────────────────
+  // -- canAccess -------------------------------------------------------------
   const canAccess = useCallback(
     (page: AppPage): boolean => {
       if (!user) return false;
@@ -133,7 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// ─── HOOK ─────────────────────────────────────────────────────────────────────
+// --- HOOK ---------------------------------------------------------------------
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);

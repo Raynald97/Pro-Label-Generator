@@ -23,7 +23,7 @@ import {
 import type { KoG, KoGFormData } from "@/types";
 import { cn } from "@/lib/utils";
 
-// ─── VALIDATION SCHEMA ────────────────────────────────────────────────────────
+// --- VALIDATION SCHEMA --------------------------------------------------------
 
 const schema = z.object({
   name: z
@@ -39,12 +39,12 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-// ─── SORT TYPES ───────────────────────────────────────────────────────────────
+// --- SORT TYPES ---------------------------------------------------------------
 
 type SortKey = "name" | "initial" | "isTempered" | "createdAt";
 type SortDir = "asc" | "desc";
 
-// ─── PAGE ─────────────────────────────────────────────────────────────────────
+// --- PAGE ---------------------------------------------------------------------
 
 export default function KoGPage() {
   const [kogs, setKogs] = useState<KoG[]>([]);
@@ -66,7 +66,7 @@ export default function KoGPage() {
     formState: { errors },
   } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
-  // ── Load ───────────────────────────────────────────────────────────────────
+  // -- Load -------------------------------------------------------------------
   async function load() {
     setLoadingData(true);
     try {
@@ -79,14 +79,14 @@ export default function KoGPage() {
   }
   useEffect(() => { load(); }, []);
 
-  // ── Open add ──────────────────────────────────────────────────────────────
+  // -- Open add --------------------------------------------------------------
   function openAdd() {
     setEditTarget(null);
     reset({ name: "", initial: "", isTempered: false });
     setModalOpen(true);
   }
 
-  // ── Open edit ─────────────────────────────────────────────────────────────
+  // -- Open edit -------------------------------------------------------------
   function openEdit(k: KoG) {
     setEditTarget(k);
     reset({
@@ -97,7 +97,7 @@ export default function KoGPage() {
     setModalOpen(true);
   }
 
-  // ── Save ──────────────────────────────────────────────────────────────────
+  // -- Save ------------------------------------------------------------------
   async function onSubmit(values: FormValues) {
     setSaving(true);
     try {
@@ -123,7 +123,7 @@ export default function KoGPage() {
     }
   }
 
-  // ── Delete ─────────────────────────────────────────────────────────────────
+  // -- Delete -----------------------------------------------------------------
   async function onDelete() {
     if (!deleteTarget) return;
     setDeleting(true);
@@ -139,7 +139,7 @@ export default function KoGPage() {
     }
   }
 
-  // ── Sort toggle ────────────────────────────────────────────────────────────
+  // -- Sort toggle ------------------------------------------------------------
   function toggleSort(key: SortKey) {
     setSort((prev) =>
       prev.key === key
@@ -148,7 +148,7 @@ export default function KoGPage() {
     );
   }
 
-  // ── Filtered + sorted ─────────────────────────────────────────────────────
+  // -- Filtered + sorted -----------------------------------------------------
   const displayed = useMemo(() => {
     const q = search.toLowerCase();
     const filtered = q
@@ -177,7 +177,7 @@ export default function KoGPage() {
     });
   }, [kogs, search, sort]);
 
-  // ─── SORT ICON ────────────────────────────────────────────────────────────
+  // --- SORT ICON ------------------------------------------------------------
   function SortIcon({ col }: { col: SortKey }) {
     if (sort.key !== col) return <ChevronsUpDown size={12} className="text-slate-600" />;
     return sort.dir === "asc"
@@ -185,7 +185,7 @@ export default function KoGPage() {
       : <ChevronDown size={12} className="text-brand-400" />;
   }
 
-  // ─── TABLE COLUMN DEFS ────────────────────────────────────────────────────
+  // --- TABLE COLUMN DEFS ----------------------------------------------------
   const cols: { key: SortKey | null; label: string; w: string }[] = [
     { key: "name", label: "Name", w: "" },
     { key: "initial", label: "Initial", w: "w-32" },
@@ -194,7 +194,7 @@ export default function KoGPage() {
     { key: null, label: "", w: "w-20" },
   ];
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────
+  // --- RENDER ---------------------------------------------------------------
   return (
     <RouteGuard requiredPage="master-data">
       <div className="animate-fade-in">
@@ -341,7 +341,7 @@ export default function KoGPage() {
         )}
       </div>
 
-      {/* ── ADD / EDIT MODAL ──────────────────────────────────────────────────── */}
+      {/* -- ADD / EDIT MODAL ---------------------------------------------------- */}
       <Modal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
@@ -424,7 +424,7 @@ export default function KoGPage() {
         </form>
       </Modal>
 
-      {/* ── DELETE CONFIRM ────────────────────────────────────────────────────── */}
+      {/* -- DELETE CONFIRM ------------------------------------------------------ */}
       <ConfirmDialog
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
