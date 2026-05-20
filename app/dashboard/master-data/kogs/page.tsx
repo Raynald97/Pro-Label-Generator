@@ -161,9 +161,10 @@ export default function KoGPage() {
         )
       : kogs;
 
-    return [...filtered].sort((a, b) => {
-      let av: any = a[sort.key];
-      let bv: any = b[sort.key];
+      return [...filtered].sort((a, b) => {
+        // Tambahkan (a as any) dan (b as any)
+        let av: any = (a as any)[sort.key];
+        let bv: any = (b as any)[sort.key];
 
       // Handle boolean sorting
       if (sort.key === "isTempered") {
