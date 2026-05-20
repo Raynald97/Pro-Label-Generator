@@ -31,7 +31,7 @@ const schema = z.object({
   description: z.string().max(200).optional().or(z.literal("")),
   width:       z.number().min(10, "Min 10mm").max(500, "Max 500mm"),
   height:      z.number().min(10, "Min 10mm").max(500, "Max 500mm"),
-  background:  z.string().default("#ffffff"),
+  background:  z.string(), 
 });
 type FormValues = z.infer<typeof schema>;
 
