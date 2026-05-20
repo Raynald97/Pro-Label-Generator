@@ -35,7 +35,7 @@ const schema = z.object({
     .min(1, "Initial is required")
     .max(10, "Max 10 characters")
     .transform((v) => v.toUpperCase()),
-  isTempered: z.boolean().default(false),
+  isTempered: z.boolean(),
 });
 type FormValues = z.infer<typeof schema>;
 
