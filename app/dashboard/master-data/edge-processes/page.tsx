@@ -125,7 +125,7 @@ export default function EdgeProcessesPage() {
     });
   }, [edgeProcesses, search, sort]);
 
-  function SortIcon({ col }: { SortKey }) {
+  function SortIcon({ col }: { col: SortKey }) {
     if (sort.key !== col) return <ChevronsUpDown size={12} className="text-slate-600" />;
     return sort.dir === "asc" ? <ChevronUp size={12} className="text-teal-400" /> : <ChevronDown size={12} className="text-teal-400" />;
   }
