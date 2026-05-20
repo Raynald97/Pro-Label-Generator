@@ -193,7 +193,7 @@ export default function AlertsPage() {
                       <td>
                         <div className="w-10 h-10 rounded-lg bg-yellow-600/10 border border-yellow-600/20 flex items-center justify-center shrink-0">
                           <span className="material-symbols-outlined text-yellow-400 text-[20px]">
-                            {a.icon || "warning"}
+                            {(a as any).icon || "warning"}
                           </span>
                         </div>
                       </td>
