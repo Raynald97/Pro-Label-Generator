@@ -101,10 +101,10 @@ export default function KoGPage() {
   async function onSubmit(values: FormValues) {
     setSaving(true);
     try {
-      const payload: KoGFormData = {
-        name: values.name.trim(),
-        initial: values.initial.trim().toUpperCase(),
-        isTempered: values.isTempered,
+      const payload: any = {
+         name: values.name.trim(),
+         initial: values.initial.trim().toUpperCase(),
+         isTempered: values.isTempered,
       };
 
       if (editTarget) {
