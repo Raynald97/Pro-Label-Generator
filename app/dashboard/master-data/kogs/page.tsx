@@ -92,7 +92,7 @@ export default function KoGPage() {
     reset({
       name: k.name,
       initial: k.initial,
-      isTempered: k.isTempered ?? false,
+      isTempered: (k as any).isTempered ?? false,
     });
     setModalOpen(true);
   }
