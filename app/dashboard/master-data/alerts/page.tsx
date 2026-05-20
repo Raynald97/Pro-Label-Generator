@@ -80,7 +80,7 @@ export default function AlertsPage() {
   function openEdit(a: Alert) {
     setEditTarget(a);
     // Mengamankan nilai icon jika data lama belum punya field icon
-    reset({ name: a.name, initial: a.initial, icon: a.icon || "warning" });
+    reset({ name: a.name, initial: a.initial, icon: (a as any).icon || "warning" });
     setModalOpen(true);
   }
 
