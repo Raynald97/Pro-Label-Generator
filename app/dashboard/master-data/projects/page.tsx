@@ -98,10 +98,12 @@ export default function ProjectsPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<Project>("projects", editTarget.id, payload);
+        // Tambahkan 'as any' di sini
+        await updateMasterItem<Project>("projects", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<Project>("projects", payload);
+        // Tambahkan 'as any' di sini
+        await createMasterItem<Project>("projects", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

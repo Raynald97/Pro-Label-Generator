@@ -79,10 +79,12 @@ export default function EdgeProcessesPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<EdgeProcess>("edgeProcesses", editTarget.id, payload);
+        // Tambahkan 'as any' pada payload
+        await updateMasterItem<EdgeProcess>("edgeProcesses", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<EdgeProcess>("edgeProcesses", payload);
+        // Tambahkan 'as any' pada payload
+        await createMasterItem<EdgeProcess>("edgeProcesses", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

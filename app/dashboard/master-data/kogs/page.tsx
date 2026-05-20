@@ -108,10 +108,12 @@ export default function KoGPage() {
       };
 
       if (editTarget) {
-        await updateMasterItem<KoG>("kogs", editTarget.id, payload);
+        // Tambahkan 'as any' pada payload
+        await updateMasterItem<KoG>("kogs", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<KoG>("kogs", payload);
+        // Tambahkan 'as any' pada payload
+        await createMasterItem<KoG>("kogs", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

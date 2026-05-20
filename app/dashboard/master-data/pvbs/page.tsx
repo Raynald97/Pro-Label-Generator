@@ -79,10 +79,12 @@ export default function PVBsPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<PVB>("pvbs", editTarget.id, payload);
+        // Tambahkan 'as any' di sini
+        await updateMasterItem<PVB>("pvbs", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<PVB>("pvbs", payload);
+        // Tambahkan 'as any' di sini
+        await createMasterItem<PVB>("pvbs", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

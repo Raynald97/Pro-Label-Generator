@@ -134,10 +134,12 @@ export default function GlassTypesPage() {
       };
 
       if (editTarget) {
-        await updateMasterItem<GlassType>("glassTypes", editTarget.id, payload);
+        // Tambahkan 'as any' pada payload
+        await updateMasterItem<GlassType>("glassTypes", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<GlassType>("glassTypes", payload);
+        // Tambahkan 'as any' pada payload
+        await createMasterItem<GlassType>("glassTypes", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

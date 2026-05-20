@@ -79,10 +79,12 @@ export default function MarkingsPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<Marking>("markings", editTarget.id, payload);
+        // Tambahkan 'as any' di sini
+        await updateMasterItem<Marking>("markings", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<Marking>("markings", payload);
+        // Tambahkan 'as any' di sini
+        await createMasterItem<Marking>("markings", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

@@ -141,10 +141,12 @@ export default function LogosPage() {
       };
 
       if (editTarget) {
-        await updateMasterItem("logos", editTarget.id, payload);
+        // Tambahkan 'as any' di sini
+        await updateMasterItem("logos", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem("logos", payload);
+        // Tambahkan 'as any' di sini
+        await createMasterItem("logos", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

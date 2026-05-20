@@ -79,10 +79,12 @@ export default function ProcessesPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<Process>("processes", editTarget.id, payload);
+        // Tambahkan 'as any' di sini
+        await updateMasterItem<Process>("processes", editTarget.id, payload as any);
         toast.success(`"${payload.name}" updated.`);
       } else {
-        await createMasterItem<Process>("processes", payload);
+        // Tambahkan 'as any' di sini
+        await createMasterItem<Process>("processes", payload as any);
         toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);

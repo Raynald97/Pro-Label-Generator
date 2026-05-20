@@ -79,11 +79,11 @@ export default function CutShapesPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<CutShape>("cutShapes", editTarget.id, payload);
-        toast.success(`"${payload.name}" updated.`);
-      } else {
-        await createMasterItem<CutShape>("cutShapes", payload);
-        toast.success(`"${payload.name}" added.`);
+          await updateMasterItem<CutShape>("cutShapes", editTarget.id, payload as any);
+          toast.success(`"${payload.name}" updated.`);
+        } else {
+          await createMasterItem<CutShape>("cutShapes", payload as any);
+          toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);
       await load();
