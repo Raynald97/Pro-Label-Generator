@@ -79,11 +79,13 @@ export default function CategoriesPage() {
         initial: values.initial.trim().toUpperCase(),
       };
       if (editTarget) {
-        await updateMasterItem<Category>("categories", editTarget.id, payload);
-        toast.success(`"${payload.name}" updated.`);
-      } else {
-        await createMasterItem<Category>("categories", payload);
-        toast.success(`"${payload.name}" added.`);
+          // Tambahkan 'as any' pada payload
+          await updateMasterItem<Category>("categories", editTarget.id, payload as any);
+          toast.success(`"${payload.name}" updated.`);
+        } else {
+          // Tambahkan 'as any' pada payload
+          await createMasterItem<Category>("categories", payload as any);
+          toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);
       await load();
