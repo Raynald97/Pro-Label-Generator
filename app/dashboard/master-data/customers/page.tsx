@@ -111,11 +111,13 @@ export default function CustomersPage() {
       };
 
       if (editTarget) {
-        await updateMasterItem<Customer>("customers", editTarget.id, payload);
-        toast.success(`"${payload.name}" updated.`);
-      } else {
-        await createMasterItem<Customer>("customers", payload);
-        toast.success(`"${payload.name}" added.`);
+          // Tambahkan 'as any' di sini
+          await updateMasterItem<Customer>("customers", editTarget.id, payload as any);
+          toast.success(`"${payload.name}" updated.`);
+        } else {
+          // Tambahkan 'as any' di sini juga
+          await createMasterItem<Customer>("customers", payload as any);
+          toast.success(`"${payload.name}" added.`);
       }
       setModalOpen(false);
       await load();
