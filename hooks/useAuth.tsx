@@ -49,15 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // -- Resolve Firebase user → Firestore profile ----------------------------
   const resolveAndSet = useCallback(async (fbUser: FirebaseUser | null) => {
-    // 🚨 ULTIMATE BYPASS: Abaikan database, langsung jadikan Super Admin!
-    setUser({
-      uid: fbUser?.uid || "bypass-123",
-      email: fbUser?.email || "admin@labelgen.com",
-      displayName: fbUser?.displayName || "Super Admin",
-      role: "admin",
-      isActive: true,
-      permissions: {} as any,
-    });
+    if (!fbUser) {
+      setUser(null);
+      setFirebaseUser(null);
+      return;
+    }
+
+    // NORMAL MODE: Ambil data user dari Firestore
+    const resolvedUser = await resolveAuthUser(fbUser);
+    setUser(resolvedUser);
     setFirebaseUser(fbUser);
   }, []);
 
@@ -94,12 +94,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       throw new Error("Sign-in failed. Please check your connection and try again.");
     }
 
-    // Bypass: Kita matikan pengecekan ketat ke Firestore agar tidak error saat login
-    /*
+    // PENGECEKAN KETAT DINYALAKAN KEMBALI
     const resolved = await resolveAuthUser(fbUser);
     if (!resolved) throw new Error("User profile not found.");
     if (!resolved.isActive) throw new Error("Account deactivated.");
-    */
     
     // State is updated by the onAuthStateChanged listener
   }, []);
