@@ -1,14 +1,15 @@
 import {
   collection,
   getDocs,
-  addDoc,
   updateDoc,
   deleteDoc,
   doc,
+  setDoc,
   query,
   orderBy,
 } from "firebase/firestore";
-import { db } from "./firebase"; // Pastikan path ini sesuai dengan file konfigurasi Firebase kamu
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { db, auth } from "./firebase"; // Pastikan auth juga di-import
 
 export interface AppUser {
   id: string;
@@ -39,16 +40,31 @@ export async function getUsers(): Promise<AppUser[]> {
   });
 }
 
-// --- CREATE: Tambah User Baru ------------------------------------------------
-export async function createUser(data: Omit<AppUser, "id" | "createdAt">): Promise<AppUser> {
+// --- CREATE: Tambah User Baru (SEKARANG BIKIN AKUN LOGIN JUGA!) -------------
+export async function createUser(data: any): Promise<AppUser> {
+  const { email, password, displayName, role, status } = data;
+
+  // 1. Daftarkan email dan password ke Firebase Authentication
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  const uid = userCredential.user.uid;
+
+  // 2. Simpan profil lengkapnya ke Firestore (menggunakan UID dari Auth sebagai ID dokumen)
   const now = new Date().toISOString();
   const payload = {
-    ...data,
+    id: uid,
+    uid: uid, // Disimpan juga agar terbaca oleh file useAuth.tsx
+    email,
+    displayName,
+    role,
+    status,
+    isActive: status === "active", // Status diubah jadi boolean agar sesuai dengan useAuth.tsx
+    permissions: {}, // Kosongkan dulu
     createdAt: now,
+    updatedAt: now,
   };
   
-  const docRef = await addDoc(collection(db, COLLECTION_NAME), payload);
-  return { id: docRef.id, ...payload } as AppUser;
+  await setDoc(doc(db, COLLECTION_NAME, uid), payload);
+  return payload as AppUser;
 }
 
 // --- UPDATE: Edit User -------------------------------------------------------

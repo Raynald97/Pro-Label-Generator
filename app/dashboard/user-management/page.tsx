@@ -80,7 +80,7 @@ export default function UserSetupPage() {
     setSaving(true);
     try {
       if (editingUser.id) {
-        // Edit Mode
+        // Edit Mode (Password diabaikan saat edit)
         await updateUser(editingUser.id, {
           displayName: editingUser.displayName,
           email: editingUser.email,
@@ -89,19 +89,24 @@ export default function UserSetupPage() {
         });
         toast.success("User berhasil diperbarui.");
       } else {
-        // Create Mode
+        // Create Mode (Kirim semua data, termasuk password)
         await createUser({
           displayName: editingUser.displayName || "",
           email: editingUser.email || "",
+          password: (editingUser as any).password || "", // 👈 KITA KIRIM PASSWORD KE FIREBASE AUTH
           role: (editingUser.role as any) || "operator",
           status: (editingUser.status as any) || "active",
         });
-        toast.success("User baru berhasil ditambahkan.");
+        toast.success("User baru beserta akun login berhasil ditambahkan.");
       }
       setModalOpen(false);
       loadUsers(); // Refresh tabel
-    } catch (err) {
-      toast.error("Gagal menyimpan user.");
+    } catch (err: any) {
+      if (err.code === 'auth/email-already-in-use') {
+        toast.error("Email ini sudah terdaftar di Firebase.");
+      } else {
+        toast.error("Gagal menyimpan user.");
+      }
     } finally {
       setSaving(false);
     }
@@ -244,8 +249,25 @@ export default function UserSetupPage() {
                   onChange={e => setEditingUser(p => ({...p!, email: e.target.value}))}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
                   placeholder="name@company.com"
+                  disabled={!!editingUser?.id} // Tidak bisa edit email
                 />
               </div>
+
+              {/* 👇 INPUT PASSWORD (Hanya tampil jika membuat user baru) 👇 */}
+              {!editingUser?.id && (
+                <div className="space-y-2">
+                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Password Baru</label>
+                  <input 
+                    required
+                    type="password" 
+                    value={(editingUser as any)?.password || ""}
+                    onChange={e => setEditingUser(p => ({...p!, password: e.target.value} as any))}
+                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-brand-500 focus:ring-1 focus:ring-brand-500 outline-none transition-all"
+                    placeholder="Minimal 6 karakter"
+                    minLength={6}
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
