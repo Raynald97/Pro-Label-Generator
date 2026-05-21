@@ -253,7 +253,7 @@ function LineItemRowCard({
   allProcesses, categories, kogs, cutShapes, glassTypes, edgeProcesses, pvbs, masterAlerts,
   onUpdate, onDelete, onDuplicate,
 }: {
-  row:            LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string };
+  row:            LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string, alerts?: string };
   rowNumber:      number;
   totalRows:      number;
   allProcesses:   Process[];
@@ -264,7 +264,7 @@ function LineItemRowCard({
   edgeProcesses:  EdgeProcess[];
   pvbs:           PVB[];
   masterAlerts:   any[];
-  onUpdate:       (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string }>) => void;
+  onUpdate:       (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string, alerts?: string }>) => void;
   onDelete:       () => void;
   onDuplicate:    () => void;
 }) {
@@ -406,7 +406,7 @@ function LineItemRowCard({
               </div>
             </div>
 
-            {/* PRODUCTION ALERTS - MOVED HERE */}
+            {/* PRODUCTION ALERTS */}
             <div className="pt-2">
                <Field label="Production Alert">
                 <SearchableSelect
@@ -613,7 +613,7 @@ export default function ProductionPage() {
     templateName:    "",
   });
 
-  const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string })[]>([makeEmptyRow()]);
+  const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string, alerts?: string })[]>([makeEmptyRow()]);
   const [errors, setErrors]     = useState<ValidationErrors | null>(null);
   const [generating, setGenerating] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
@@ -703,7 +703,6 @@ export default function ProductionPage() {
   }
 
   const customerOptions:  Option[] = customers.map((c) => ({ id: c.id, label: c.name, sub: c.initial }));
-  const projectOptions:   Option[] = projects.map((p) => ({ id: p.id, label: p.name, sub: p.initial }));
   const logoOptions:      Option[] = logos.map((l)    => ({ id: l.id, label: l.name }));
   const markingOptions:   Option[] = markings.map((m) => ({ id: m.id, label: m.name, sub: m.initial }));
   const templateOptions:  Option[] = templates.map((t) => ({ id: t.id, label: t.name, sub: `${t.width}×${t.height}mm` }));
@@ -755,7 +754,7 @@ export default function ProductionPage() {
                     <input value={header.city} onChange={(e) => patchHeader({ city: e.target.value })} placeholder="Jakarta" className={cn("input-base h-9", submitted && errors?.header.city && "border-red-500")} />
                   </Field>
                   <Field label="Project">
-                    <SearchableSelect value={header.projectId || ""} onChange={(id, opt) => patchHeader({ projectId: id, projectInitial: opt?.sub })} options={projectOptions} placeholder="Select project (Optional)" clearable />
+                    <SearchableSelect value={header.projectId || ""} onChange={(id, opt) => patchHeader({ projectId: id, projectInitial: opt?.sub })} options={projects.map(p => ({ id: p.id, label: p.name, sub: p.initial }))} placeholder="Select project (Optional)" clearable />
                   </Field>
                 </div>
 
