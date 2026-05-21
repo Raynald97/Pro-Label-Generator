@@ -45,7 +45,7 @@ export function Sidebar() {
   async function handleSignOut() {
     setSigningOut(true);
     await signOut();
-    router.replace("/auth/login");
+    router.replace("/login");
   }
 
   function SidebarContent() {
