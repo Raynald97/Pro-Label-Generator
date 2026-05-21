@@ -244,8 +244,10 @@ function ProcessChecklist({ items, onChange }: {
             : <Square size={13} />}
           {p.name}
           {p.autoChecked && p.checked && (
-            <Zap size={11} className="text-brand-400" title="Auto-filled by formula" />
-          )}
+              <span title="Auto-filled by formula" className="flex items-center">
+                <Zap size={11} className="text-brand-400" />
+              </span>
+            )}
         </button>
       ))}
     </div>
