@@ -51,7 +51,7 @@ function normalise(data: DocumentData): DocumentData {
 // ════════════════════════════════════════════════════════════════════════════
 
 // --- READ ALL -----------------------------------------------------------------
-export async function getMasterList<T extends MasterBase>(
+export async function getMasterList<T>(
   col: MasterCollection
 ): Promise<T[]> {
   const q = query(collection(db, col), orderBy("name", "asc"));
@@ -60,7 +60,7 @@ export async function getMasterList<T extends MasterBase>(
 }
 
 // --- CREATE -------------------------------------------------------------------
-export async function createMasterItem<T extends MasterBase>(
+export async function createMasterItem<T>(
   col: MasterCollection,
   data: Omit<T, "id" | "createdAt" | "updatedAt">
 ): Promise<T> {
@@ -71,7 +71,7 @@ export async function createMasterItem<T extends MasterBase>(
 }
 
 // --- UPDATE -------------------------------------------------------------------
-export async function updateMasterItem<T extends Partial<MasterBase>>(
+export async function updateMasterItem<T>(
   col: MasterCollection,
   id: string,
   data: Omit<T, "id" | "createdAt">
