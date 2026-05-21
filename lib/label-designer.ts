@@ -182,6 +182,20 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     description: 'e.g. "L1:DG06 L2:DG06"',
     isImage:     false,
   },
+  {
+  token:       "{{alerts}}",
+  label:       "Alert Text",
+  category:    "production",
+  description: "Teks instruksi produksi dari baris terkait",
+  isImage:     false,
+  },
+  {
+  token:       "{{alert_icon}}",
+  label:       "Alert Symbol",
+  category:    "image",
+  description: "Simbol peringatan (muncul otomatis jika baris memiliki alert)",
+  isImage:     true,
+  },
   // -- Production ----------------------------------------------------------
   {
     token:       "{{process_list}}",
@@ -374,6 +388,8 @@ export function previewContent(el: TextElement): string {
     "{{cut_shape_initial}}": "SQ",
     "{{process_initials}}":  "TP, LM",
     "{{project_initial}}":   "PRJ",
+    "{{alerts}}":          "Hati-hati sisi coating luar",
+    "{{alert_icon}}":      "https://cdn-icons-png.flaticon.com/512/564/564619.png",
   };
   if (el.variable && el.variable in PREVIEWS) {
     return PREVIEWS[el.variable as VariableToken]!;
