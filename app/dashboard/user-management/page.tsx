@@ -102,10 +102,12 @@ export default function UserSetupPage() {
       setModalOpen(false);
       loadUsers(); // Refresh tabel
     } catch (err: any) {
-      if (err.code === 'auth/email-already-in-use') {
+      console.error("Error Detail:", err); // 👈 Catat di console
+      if (err?.code === 'auth/email-already-in-use') {
         toast.error("Email ini sudah terdaftar di Firebase.");
       } else {
-        toast.error("Gagal menyimpan user.");
+        // 👇 Tampilkan pesan asli dari Firebase ke layar
+        toast.error(`Gagal: ${err?.message || err?.code || "Cek console browser"}`);
       }
     } finally {
       setSaving(false);
