@@ -459,18 +459,28 @@ function normalise(data: DocumentData): DocumentData {
 
 const COL = "labelTemplates";
 
-/** Load all templates (ordered newest first for the index page) */
-export async function getTemplates(): Promise<LabelTemplate[]> {
-  const q    = query(collection(db, COL), orderBy("updatedAt", "desc"));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => ({ id: d.id, ...normalise(d.data()) } as LabelTemplate));
-}
+/** Duplicate a template */
+export async function duplicateTemplate(
+  template: LabelTemplate,
+  newName:  string
+): Promise<LabelTemplate> {
+  const now = new Date().toISOString();
+  
+  // 👇 KITA PISAHKAN id LAMA AGAR TIDAK IKUT TERSIMPAN
+  const { id: _oldId, ...restOfTemplate } = template;
 
-/** Load a single template by ID */
-export async function getTemplate(id: string): Promise<LabelTemplate | null> {
-  const snap = await getDoc(doc(db, COL, id));
-  if (!snap.exists()) return null;
-  return { id: snap.id, ...normalise(snap.data()) } as LabelTemplate;
+  const payload: Omit<LabelTemplate, "id"> = {
+    ...restOfTemplate,
+    name:      newName,
+    createdAt: now,
+    updatedAt: now,
+  };
+  
+  // Give every element a fresh ID to avoid collisions
+  payload.elements = template.elements.map((el) => ({ ...el, id: uid() }));
+  
+  const ref = await addDoc(collection(db, COL), payload);
+  return { id: ref.id, ...payload };
 }
 
 /** Create a new empty template */
