@@ -1,11 +1,5 @@
 /**
  * lib/label-designer.ts
- *
- * Firestore CRUD for LabelTemplate + pure utility helpers used by
- * the designer canvas and the Production renderer.
- *
- * NO React imports here — this file is safe to import from both
- * client components and server-side code.
  */
 
 import {
@@ -37,16 +31,9 @@ import type {
 // CONSTANTS
 // ════════════════════════════════════════════════════════════════════════════
 
-/** Base pixels-per-mm at 96 dpi screen resolution */
 export const MM_TO_PX = 3.7795275591;
-
-/** Snap grid in mm — elements snap to this value when dragging */
 export const GRID_MM = 1;
-
-/** Minimum element size in mm */
 export const MIN_ELEMENT_MM = 3;
-
-/** Default zoom level */
 export const DEFAULT_ZOOM = 1.5;
 
 // ════════════════════════════════════════════════════════════════════════════
@@ -182,20 +169,6 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     description: 'e.g. "L1:DG06 L2:DG06"',
     isImage:     false,
   },
-  {
-  token:       "{{alerts}}",
-  label:       "Alert Text",
-  category:    "production",
-  description: "Teks instruksi produksi dari baris terkait",
-  isImage:     false,
-  },
-  {
-  token:       "{{alert_icon}}",
-  label:       "Alert Symbol",
-  category:    "image",
-  description: "Simbol peringatan (muncul otomatis jika baris memiliki alert)",
-  isImage:     true,
-  },
   // -- Production ----------------------------------------------------------
   {
     token:       "{{process_list}}",
@@ -225,6 +198,13 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     description: 'e.g. "M:SNI[BR8]"',
     isImage:     false,
   },
+  {
+    token:       "{{alerts}}" as any,
+    label:       "Alert Text",
+    category:    "production",
+    description: "Teks instruksi produksi dari baris terkait",
+    isImage:     false,
+  },
   // -- Image ---------------------------------------------------------------
   {
     token:       "{{logo}}",
@@ -238,6 +218,13 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
     label:       "Marking Image",
     category:    "image",
     description: "Marking stamp image",
+    isImage:     true,
+  },
+  {
+    token:       "{{alert_icon}}" as any,
+    label:       "Alert Symbol",
+    category:    "image",
+    description: "Simbol peringatan (muncul jika baris memiliki alert)",
     isImage:     true,
   },
 ];
@@ -361,11 +348,11 @@ export function elementLabel(el: CanvasElement): string {
 }
 
 function varLabel(token: VariableToken): string {
-  return VARIABLE_DEFINITIONS.find((v) => v.token === token)?.label ?? token;
+  return (VARIABLE_DEFINITIONS as any).find((v: any) => v.token === token)?.label ?? token;
 }
 
 export function previewContent(el: TextElement): string {
-  const PREVIEWS: Partial<Record<VariableToken, string>> = {
+  const PREVIEWS: Partial<Record<string, string>> = {
     "{{so_number}}":       "SO: 2400123",
     "{{cust_name}}":       "PT. Example Indonesia",
     "{{cust_initial}}":    "PTI",
@@ -388,11 +375,11 @@ export function previewContent(el: TextElement): string {
     "{{cut_shape_initial}}": "SQ",
     "{{process_initials}}":  "TP, LM",
     "{{project_initial}}":   "PRJ",
-    "{{alerts}}":          "Hati-hati sisi coating luar",
-    "{{alert_icon}}":      "https://cdn-icons-png.flaticon.com/512/564/564619.png",
+    "{{alerts}}":            "CAUTION: Outer coating side",
+    "{{alert_icon}}":        "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Google_Alerts_icon.svg/512px-Google_Alerts_icon.svg.png",
   };
   if (el.variable && el.variable in PREVIEWS) {
-    return PREVIEWS[el.variable as VariableToken]!;
+    return PREVIEWS[el.variable as string]!;
   }
   return el.content || el.variable || "Text";
 }
@@ -527,20 +514,14 @@ export async function duplicateTemplate(
   newName:  string
 ): Promise<LabelTemplate> {
   const now = new Date().toISOString();
-  
-  // BUANG id LAMA
   const { id: _oldId, ...restOfTemplate } = template;
-
   const payload: Omit<LabelTemplate, "id"> = {
     ...restOfTemplate,
     name:      newName,
     createdAt: now,
     updatedAt: now,
   };
-  
-  // Berikan ID baru untuk setiap elemen di dalamnya
   payload.elements = template.elements.map((el) => ({ ...el, id: uid() }));
-  
   const ref = await addDoc(collection(db, COL), payload);
   return { id: ref.id, ...payload };
 }
@@ -549,12 +530,3 @@ export async function duplicateTemplate(
 export async function deleteTemplate(id: string): Promise<void> {
   await deleteDoc(doc(db, COL, id));
 }
-
-/**
- * MM_TO_PX, GRID_MM, MIN_ELEMENT_MM, DEFAULT_ZOOM, VARIABLE_DEFINITIONS,
- * makeTextElement, makeImageElement, makeLineElement, snapToGrid, mmToPx,
- * pxToMm, clampElement, ptToMm, elementLabel, previewContent, historyPush,
- * historyUndo, historyRedo, HistoryStack, getTemplates, getTemplate,
- * createTemplate, updateTemplateMetadata, saveTemplateElements,
- * duplicateTemplate, deleteTemplate
- */
