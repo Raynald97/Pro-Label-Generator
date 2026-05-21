@@ -58,7 +58,7 @@ function Field({ label, required, error, children }: {
   );
 }
 
-// --- SEARCHABLE DROPDOWN (ANTI-BOCOR) ----------------------------------------
+// --- SEARCHABLE DROPDOWN -----------------------------------------------------
 
 interface Option { id: string; label: string; sub?: string; }
 
@@ -176,7 +176,8 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
   );
 }
 
-// --- NUMBER INPUT ---
+// --- NUMBER INPUT -------------------------------------------------------------
+
 function NumInput({ value, onChange, min = 0, step = 1, suffix, className, placeholder }: {
   value: number | ""; onChange: (v: number) => void;
   min?: number; step?: number; suffix?: string; className?: string; placeholder?: string;
@@ -202,6 +203,48 @@ function NumInput({ value, onChange, min = 0, step = 1, suffix, className, place
 }
 
 // ════════════════════════════════════════════════════════════════════════════
+// PROCESS CHECKLIST COMPONENT
+// ════════════════════════════════════════════════════════════════════════════
+
+function ProcessChecklist({ items, onChange }: {
+  items:     ProcessWithCheck[];
+  onChange: (id: string, checked: boolean) => void;
+}) {
+  if (items.length === 0) {
+    return <p className="text-slate-600 text-xs italic">No processes defined in Master Data.</p>;
+  }
+  return (
+    <div className="flex flex-wrap gap-2">
+      {items.map((p) => (
+        <button
+          key={p.id}
+          type="button"
+          onClick={() => onChange(p.id, !p.checked)}
+          className={cn(
+            "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all",
+            p.checked
+              ? p.autoChecked
+                ? "bg-brand-600/20 border-brand-500/40 text-brand-300"
+                : "bg-emerald-600/20 border-emerald-500/40 text-emerald-300"
+              : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 hover:text-slate-300"
+          )}
+        >
+          {p.checked
+            ? <CheckSquare size={13} className={p.autoChecked ? "text-brand-400" : "text-emerald-400"} />
+            : <Square size={13} />}
+          {p.name}
+          {p.autoChecked && p.checked && (
+              <span title="Auto-filled by formula" className="flex items-center">
+                <Zap size={11} className="text-brand-400" />
+              </span>
+            )}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ════════════════════════════════════════════════════════════════════════════
 // LINE ITEM ROW COMPONENT
 // ════════════════════════════════════════════════════════════════════════════
 
@@ -221,7 +264,7 @@ function LineItemRowCard({
   edgeProcesses:  EdgeProcess[];
   pvbs:           PVB[];
   masterAlerts:   any[];
-  onUpdate:       (patch: any) => void;
+  onUpdate:       (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string, alerts?: string }>) => void;
   onDelete:       () => void;
   onDuplicate:    () => void;
 }) {
@@ -242,7 +285,12 @@ function LineItemRowCard({
     setLoadingFormula(true);
     try {
       const formula = await getFormulaByKogId(id);
-      if (formula) onUpdate({ checkedProcessIds: formula.processIds });
+      if (formula) {
+        onUpdate({ checkedProcessIds: formula.processIds });
+        toast.info(`Auto-checked ${formula.processIds.length} processes for ${opt?.label}`);
+      } else {
+        onUpdate({ checkedProcessIds: [] });
+      }
     } catch {
       toast.error("Failed to fetch formula.");
     } finally {
@@ -250,7 +298,45 @@ function LineItemRowCard({
     }
   }
 
-  const pvbOptions: Option[] = pvbs.map((p) => ({ id: p.initial, label: p.name, sub: p.initial }));
+  function toggleProcess(pid: string, checked: boolean) {
+    const ids = new Set(row.checkedProcessIds);
+    if (checked) ids.add(pid); else ids.delete(pid);
+    onUpdate({ checkedProcessIds: Array.from(ids) });
+  }
+
+  function toggleSide(side: EdgeSide) {
+    const sides = new Set(row.edgeSides);
+    if (sides.has(side)) sides.delete(side); else sides.add(side);
+    onUpdate({ edgeSides: Array.from(sides) as EdgeSide[] });
+  }
+
+  function updateLayer(idx: number, patch: Partial<GlassLayer>) {
+    const layers = row.glassLayers.map((l, i) => i === idx ? { ...l, ...patch } : l);
+    onUpdate({ glassLayers: layers });
+  }
+  function addLayer() {
+    if (row.glassLayers.length >= 3) return;
+    onUpdate({ glassLayers: [...row.glassLayers, { glassTypeId: "", glassTypeInitial: "", glassTypeName: "", thicknessMm: 0 }] });
+  }
+  function removeLayer(idx: number) {
+    if (row.glassLayers.length <= 1) return;
+    onUpdate({ glassLayers: row.glassLayers.filter((_, i) => i !== idx) });
+  }
+
+  const preview = useMemo(() => {
+    const parts: string[] = [];
+    if (row.kogInitial)   parts.push(row.kogInitial);
+    if (row.dimensionW && row.dimensionH) parts.push(`${row.dimensionW}×${row.dimensionH}`);
+    if (row.thickness.l1) parts.push(formatThickness(row.thickness));
+    return parts.join(" · ") || "Empty row";
+  }, [row]);
+
+  const kogOptions:         Option[] = kogs.map((k)  => ({ id: k.id, label: k.name,  sub: k.initial }));
+  const categoryOptions:    Option[] = categories.map((c) => ({ id: c.id, label: c.name, sub: c.initial }));
+  const cutShapeOptions:    Option[] = cutShapes.map((c)  => ({ id: c.id, label: c.name, sub: c.initial }));
+  const glassTypeOptions:   Option[] = glassTypes.map((g) => ({ id: g.id, label: g.name, sub: g.initial }));
+  const edgeProcessOptions: Option[] = edgeProcesses.map((e) => ({ id: e.id, label: e.name, sub: e.initial }));
+  const pvbOptions:         Option[] = pvbs.map((p) => ({ id: p.initial, label: p.name, sub: p.initial }));
 
   return (
     <div className="card transition-all">
@@ -258,15 +344,14 @@ function LineItemRowCard({
         <div className="w-6 h-6 rounded-full bg-brand-600/20 border border-brand-600/30 flex items-center justify-center shrink-0">
           <span className="text-brand-400 text-[11px] font-bold">{rowNumber}</span>
         </div>
-        <p className="text-slate-300 text-xs flex-1 truncate">
-          {row.kogInitial || ""} {row.dimensionW && row.dimensionH ? `· ${row.dimensionW}×${row.dimensionH}` : ""}
-        </p>
+        <p className="text-slate-300 text-xs flex-1 truncate">{preview}</p>
 
         <div className="flex items-center gap-1.5 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1">
           <span className="text-slate-500 text-[11px]">Qty</span>
           <input
             type="number"
             min={1}
+            max={999}
             value={row.quantity}
             onChange={(e) => onUpdate({ quantity: Math.max(1, parseInt(e.target.value) || 1) })}
             className="w-12 bg-transparent text-white text-xs font-mono text-center focus:outline-none"
@@ -275,9 +360,15 @@ function LineItemRowCard({
         </div>
 
         <div className="flex items-center gap-1">
-          <button onClick={onDuplicate} title="Duplicate row" className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded transition-colors"><Copy size={12} /></button>
-          {totalRows > 1 && <button onClick={onDelete} title="Remove row" className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-colors"><Trash2 size={12} /></button>}
-          <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 text-slate-500 hover:text-white hover:bg-slate-700 rounded transition-colors">
+          <button onClick={onDuplicate} title="Duplicate row" className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
+            <Copy size={12} />
+          </button>
+          {totalRows > 1 && (
+            <button onClick={onDelete} title="Remove row" className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              <Trash2 size={12} />
+            </button>
+          )}
+          <button onClick={() => setCollapsed(!collapsed)} className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
             {collapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
           </button>
         </div>
@@ -288,44 +379,36 @@ function LineItemRowCard({
           <div className="space-y-5">
             <Field label="KoG" required>
               <div className="relative">
-                <SearchableSelect value={row.kogId} onChange={handleKogChange} options={kogs.map(k=>({id:k.id, label:k.name, sub:k.initial}))} placeholder="Select KoG…" />
-                {loadingFormula && <RefreshCw size={12} className="absolute right-8 top-3 animate-spin text-brand-400" />}
+                <SearchableSelect value={row.kogId} onChange={handleKogChange} options={kogOptions} placeholder="Select KoG…" />
+                {loadingFormula && <div className="absolute right-8 inset-y-0 flex items-center"><RefreshCw size={12} className="animate-spin text-brand-400" /></div>}
               </div>
             </Field>
 
             <div>
               <label className="form-label mb-2 flex items-center justify-between">Processes</label>
-              <div className="flex flex-wrap gap-2">
-                {checklist.map(p => (
-                  <button key={p.id} type="button" onClick={() => {
-                    const ids = new Set(row.checkedProcessIds);
-                    p.checked ? ids.delete(p.id) : ids.add(p.id);
-                    onUpdate({ checkedProcessIds: Array.from(ids) });
-                  }} className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-[10px] font-medium transition-all", p.checked ? "bg-brand-600/20 border-brand-500/40 text-brand-300" : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500")}>
-                    {p.checked ? <CheckSquare size={13} className="text-brand-400" /> : <Square size={13} />}
-                    {p.name}
-                  </button>
-                ))}
-              </div>
+              <ProcessChecklist items={checklist} onChange={toggleProcess} />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <Field label="Cut Shape" required>
-                <SearchableSelect value={row.cutShapeId} onChange={(id, opt) => onUpdate({ cutShapeId: id, cutShapeName: opt?.label ?? "", cutShapeInitial: opt?.sub ?? "" })} options={cutShapes.map(c=>({id:c.id, label:c.name, sub:c.initial}))} placeholder="Shape…" />
+                <SearchableSelect value={row.cutShapeId} onChange={(id, opt) => onUpdate({ cutShapeId: id, cutShapeName: opt?.label ?? "", cutShapeInitial: opt?.sub ?? "" })} options={cutShapeOptions} placeholder="Shape…" />
               </Field>
               <Field label="Category">
-                <SearchableSelect value={row.categoryId} onChange={(id, opt) => onUpdate({ categoryId: id, categoryInitial: opt?.sub ?? "" })} options={categories.map(c=>({id:c.id, label:c.name, sub:c.initial}))} placeholder="Optional" clearable />
+                <SearchableSelect value={row.categoryId} onChange={(id, opt) => onUpdate({ categoryId: id, categoryInitial: opt?.sub ?? "" })} options={categoryOptions} placeholder="Optional" clearable />
               </Field>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <Field label="Dimensions" required>
-                <div className="flex gap-2">
-                  <NumInput value={row.dimensionW || ""} onChange={(v) => onUpdate({ dimensionW: v })} placeholder="Width" suffix="W" />
-                  <NumInput value={row.dimensionH || ""} onChange={(v) => onUpdate({ dimensionH: v })} placeholder="Height" suffix="H" />
-                </div>
-              </Field>
-              <Field label="Production Alert">
+            <div>
+              <label className="form-label">Dimensions <span className="text-red-400">*</span></label>
+              <div className="grid grid-cols-2 gap-2">
+                <NumInput value={row.dimensionW || ""} onChange={(v) => onUpdate({ dimensionW: v })} placeholder="Width" suffix="W" />
+                <NumInput value={row.dimensionH || ""} onChange={(v) => onUpdate({ dimensionH: v })} placeholder="Height" suffix="H" />
+              </div>
+            </div>
+
+            {/* PRODUCTION ALERTS */}
+            <div className="pt-2">
+               <Field label="Production Alert">
                 <SearchableSelect 
                   value={row.alertId || ""} 
                   options={masterAlerts.map(a => ({ id: a.id, label: a.name, sub: a.description }))} 
@@ -334,57 +417,71 @@ function LineItemRowCard({
                   clearable
                 />
               </Field>
-            </div>
 
-            {row.alerts && (
-              <div className="p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 flex gap-3 items-start animate-fade-in">
-                 <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Google_Alerts_icon.svg/512px-Google_Alerts_icon.svg.png" className="w-4 h-4" />
-                 </div>
-                 <p className="text-[11px] text-amber-200/80 leading-relaxed italic mt-1">"{row.alerts}"</p>
-              </div>
-            )}
+              {/* TAMBAHKAN BLOK INI UNTUK PREVIEW ICON GOOGLE */}
+              {row.alerts && (
+                <div className="mt-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10 flex gap-3 items-start animate-fade-in">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
+                    {/* Menggunakan URL icon Google Alerts sesuai permintaan Anda */}
+                    <img 
+                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Google_Alerts_icon.svg/512px-Google_Alerts_icon.svg.png" 
+                      alt="Alert" 
+                      className="w-5 h-5" 
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-[10px] text-amber-500 font-bold uppercase tracking-wider mb-0.5">Instruction:</p>
+                    <p className="text-[11px] text-amber-200/80 leading-relaxed italic">"{row.alerts}"</p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-5 lg:border-l border-slate-800/50 lg:pl-10">
             <div>
-              <label className="form-label">Thickness & Interlayer <span className="text-red-400">*</span></label>
+              <label className="form-label">Thickness <span className="text-red-400">*</span></label>
               <div className="grid grid-cols-3 gap-1.5 mb-2.5">
                 {(["l1", "l2", "l3"] as const).map((key) => (
-                  <NumInput key={key} value={row.thickness[key] ?? ""} step={key === "l2" ? 0.01 : 1} placeholder={key === "l1" ? "G1" : key === "l2" ? "PVB" : "G2"} 
-                  onChange={(v) => {
-                    const val = v || null;
-                    const newThickness = { ...row.thickness, [key]: val } as ThicknessCalc;
-                    const patch: any = { thickness: newThickness };
-                    const newLayers = [...row.glassLayers];
-                    let layersChanged = false;
+                  <div key={key}>
+                     <NumInput
+                      value={row.thickness[key] ?? ""}
+                      step={key === "l2" ? 0.01 : 1}
+                      placeholder={key === "l1" ? "G1" : key === "l2" ? "PVB" : "G2"}
+                      onChange={(v) => {
+                        const val = v || null;
+                        const newThickness = { ...row.thickness, [key]: val } as ThicknessCalc;
+                        const patch: any = { thickness: newThickness };
+                        const newLayers = [...row.glassLayers];
+                        let layersChanged = false;
 
-                    // LOGIKA AUTO-ADD LAYER ASLI (YANG SEMPAT HILANG)
-                    if (key === "l1" && newLayers[0]) {
-                      newLayers[0] = { ...newLayers[0], thicknessMm: v || 0 };
-                      layersChanged = true;
-                    } else if (key === "l3") {
-                      if (newLayers[1]) {
-                        newLayers[1] = { ...newLayers[1], thicknessMm: v || 0 };
-                        layersChanged = true;
-                      } else if (v) {
-                        newLayers.push({ glassTypeId: "", glassTypeInitial: "", glassTypeName: "", thicknessMm: v });
-                        layersChanged = true;
-                      }
-                    }
-                    if (layersChanged) patch.glassLayers = newLayers;
-                    onUpdate(patch);
-                  }} />
+                        if (key === "l1" && newLayers[0]) {
+                          newLayers[0] = { ...newLayers[0], thicknessMm: v || 0 };
+                          layersChanged = true;
+                        } else if (key === "l3") {
+                          if (newLayers[1]) {
+                            newLayers[1] = { ...newLayers[1], thicknessMm: v || 0 };
+                            layersChanged = true;
+                          } else if (v) {
+                            newLayers.push({ glassTypeId: "", glassTypeInitial: "", glassTypeName: "", thicknessMm: v });
+                            layersChanged = true;
+                          }
+                        }
+                        if (layersChanged) patch.glassLayers = newLayers;
+                        onUpdate(patch);
+                      }}
+                    />
+                  </div>
                 ))}
               </div>
-              <SearchableSelect value={row.interlayerInitial || ""} onChange={(v) => onUpdate({ interlayerInitial: v })} options={pvbOptions} placeholder="Select Interlayer" clearable />
+              <SearchableSelect value={row.interlayerInitial || ""} onChange={(initial) => onUpdate({ interlayerInitial: initial })} options={pvbOptions} placeholder="Select Interlayer" clearable />
             </div>
 
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="form-label mb-0">Glass Layers</label>
                 {row.glassLayers.length < 3 && (
-                  <button type="button" onClick={() => onUpdate({ glassLayers: [...row.glassLayers, { glassTypeId: "", glassTypeInitial: "", glassTypeName: "", thicknessMm: 0 }] })} className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 transition-colors">
+                  <button type="button" onClick={addLayer} className="text-xs text-brand-400 hover:text-brand-300 flex items-center gap-1 transition-colors">
                     <Plus size={11} /> Add layer
                   </button>
                 )}
@@ -394,41 +491,41 @@ function LineItemRowCard({
                   <div key={idx} className="flex items-center gap-2">
                     <span className="text-[11px] text-slate-600 w-5 shrink-0 font-medium">L{idx + 1}</span>
                     <div className="flex-1">
-                      <SearchableSelect value={layer.glassTypeId} onChange={(id, opt) => {
-                        const layers = [...row.glassLayers];
-                        layers[idx] = { ...layers[idx], glassTypeId: id, glassTypeInitial: opt?.sub ?? "", glassTypeName: opt?.label ?? "" };
-                        onUpdate({ glassLayers: layers });
-                      }} options={glassTypes.map(g=>({id:g.id, label:g.name, sub:g.initial}))} placeholder={`L${idx + 1} Type…`} />
+                      <SearchableSelect value={layer.glassTypeId} onChange={(id, opt) => updateLayer(idx, { glassTypeId: id, glassTypeInitial: opt?.sub ?? "", glassTypeName: opt?.label ?? "" })} options={glassTypeOptions} placeholder={`L${idx + 1} Type…`} />
                     </div>
                     <div className="w-24">
-                      <NumInput value={layer.thicknessMm || ""} step={1} suffix="mm" onChange={(v) => {
-                         const layers = [...row.glassLayers];
-                         layers[idx] = { ...layers[idx], thicknessMm: v };
-                         onUpdate({ glassLayers: layers });
-                      }} />
+                      <NumInput value={layer.thicknessMm || ""} step={1} suffix="mm" onChange={(v) => updateLayer(idx, { thicknessMm: v })} />
                     </div>
-                    {row.glassLayers.length > 1 && (
-                      <button onClick={() => onUpdate({ glassLayers: row.glassLayers.filter((_, i) => i !== idx) })} className="text-slate-600 hover:text-red-400 transition-colors shrink-0 p-1"><X size={14} /></button>
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-5 pt-1">
-              <Field label="Edge Process">
-                <SearchableSelect value={row.edgeProcessId} onChange={(id, opt) => onUpdate({ edgeProcessId: id, edgeProcessInitial: opt?.sub ?? "" })} options={edgeProcesses.map(e=>({id:e.id, label:e.name, sub:e.initial}))} placeholder="None" clearable />
-              </Field>
-              <div className="grid grid-cols-2 gap-2">
-                <Field label="Marking">
-                   <select value={row.markingPosition} onChange={(e) => onUpdate({ markingPosition: e.target.value })} className="input-base h-9 text-[11px]">
-                    {["TL", "TR", "BL", "BR"].map(p => <option key={p} value={p}>{p}</option>)}
-                  </select>
-                </Field>
-                <Field label="Offset">
-                  <NumInput value={row.markingOffset} step={1} onChange={(v) => onUpdate({ markingOffset: v })} />
-                </Field>
+            <div>
+              <label className="form-label">Edge Process</label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SearchableSelect value={row.edgeProcessId} onChange={(id, opt) => onUpdate({ edgeProcessId: id, edgeProcessInitial: opt?.sub ?? "" })} options={edgeProcessOptions} placeholder="None" clearable />
+                </div>
+                <div className="flex gap-1">
+                  {(["B", "T", "L", "R"] as EdgeSide[]).map((side) => (
+                    <button key={side} type="button" disabled={!row.edgeProcessId} onClick={() => toggleSide(side)} className={cn("w-8 h-9 rounded-lg border text-[10px] font-bold transition-all", row.edgeSides.includes(side) ? "bg-brand-600/20 border-brand-500/50 text-brand-300" : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 disabled:opacity-30")}>
+                      {side}
+                    </button>
+                  ))}
+                </div>
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-5">
+              <Field label="Marking Position">
+                <select value={row.markingPosition} onChange={(e) => onUpdate({ markingPosition: e.target.value })} className="input-base h-9 text-sm">
+                  {["TL", "TR", "BL", "BR"].map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </Field>
+              <Field label="Marking Offset">
+                <NumInput value={row.markingOffset} step={1} suffix="mm" onChange={(v) => onUpdate({ markingOffset: v })} />
+              </Field>
             </div>
           </div>
         </div>
@@ -438,7 +535,7 @@ function LineItemRowCard({
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// MAIN PAGE
+// VALIDATION & HELPERS
 // ════════════════════════════════════════════════════════════════════════════
 
 interface ValidationErrors {
@@ -449,49 +546,87 @@ interface ValidationErrors {
 
 function validate(header: Partial<BatchHeader>, rows: LineItemRow[]): ValidationErrors {
   const errors: ValidationErrors = { header: {}, rows: rows.map(() => ({})), global: null };
-  if (!header.soNumber?.trim())       errors.header.soNumber       = "SO Number required";
-  if (!header.customerId)           errors.header.customerId     = "Customer required";
-  if (!header.templateId)           errors.header.templateId     = "Template required";
+
+  if (!header.soNumber?.trim())       errors.header.soNumber       = "SO Number is required";
+  if (!header.customerId)           errors.header.customerId     = "Customer is required";
+  if (!header.city?.trim())         errors.header.city           = "City is required";
+  if (!header.targetSchedule)       errors.header.targetSchedule = "Target schedule is required";
+  if (!header.templateId)           errors.header.templateId     = "Label template is required";
 
   rows.forEach((row, i) => {
-    if (!row.kogId)               errors.rows[i].kogId       = "KoG required";
-    if (!row.cutShapeId)          errors.rows[i].cutShapeId  = "Shape required";
-    if (!row.dimensionW || !row.dimensionH) errors.rows[i].dimensions = "Size required";
+    if (!row.kogId)               errors.rows[i].kogId       = "KoG is required";
+    if (!row.cutShapeId)          errors.rows[i].cutShapeId  = "Cut Shape is required";
+    if (!row.thickness.l1)        errors.rows[i].thickness   = "L1 thickness is required";
+    if (!row.dimensionW || !row.dimensionH) errors.rows[i].dimensions = "Dimensions are required";
+    if (row.quantity < 1)         errors.rows[i].quantity    = "Quantity must be ≥ 1";
   });
-  if (rows.length === 0) errors.global = "Add at least one row.";
+
+  if (rows.length === 0) errors.global = "Add at least one line item.";
+
   return errors;
 }
 
 function hasErrors(e: ValidationErrors): boolean {
-  return Object.keys(e.header).length > 0 || e.rows.some((r) => Object.keys(r).length > 0) || e.global !== null;
+  return (
+    Object.keys(e.header).length > 0 ||
+    e.rows.some((r) => Object.keys(r).length > 0) ||
+    e.global !== null
+  );
 }
 
+// ════════════════════════════════════════════════════════════════════════════
+// MAIN PAGE
+// ════════════════════════════════════════════════════════════════════════════
+
 function getDefaultTargetSchedule() {
-  const d = new Date(); d.setDate(d.getDate() + 2);
-  return d.toISOString().split('T')[0];
+  const d = new Date();
+  d.setDate(d.getDate() + 2);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 export default function ProductionPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [master, setMaster] = useState({
-    customers: [] as Customer[], projects: [] as Project[], categories: [] as Category[],
-    kogs: [] as KoG[], cutShapes: [] as CutShape[], pvbs: [] as PVB[],
-    glassTypes: [] as GlassType[], processes: [] as Process[], edgeProcesses: [] as EdgeProcess[],
-    logos: [] as Logo[], markings: [] as Marking[], templates: [] as LabelTemplate[],
-    alerts: [] as any[],
-  });
+  const [customers,     setCustomers]     = useState<Customer[]>([]);
+  const [projects,      setProjects]      = useState<Project[]>([]);
+  const [categories,    setCategories]    = useState<Category[]>([]);
+  const [kogs,          setKogs]          = useState<KoG[]>([]);
+  const [cutShapes,     setCutShapes]     = useState<CutShape[]>([]);
+  const [pvbs,          setPvbs]          = useState<PVB[]>([]);
+  const [glassTypes,    setGlassTypes]    = useState<GlassType[]>([]);
+  const [processes,     setProcesses]     = useState<Process[]>([]);
+  const [edgeProcesses, setEdgeProcesses] = useState<EdgeProcess[]>([]);
+  const [logos,         setLogos]         = useState<Logo[]>([]);
+  const [markings,      setMarkings]      = useState<Marking[]>([]);
+  const [templates,     setTemplates]     = useState<LabelTemplate[]>([]);
+  const [masterAlerts,  setMasterAlerts]  = useState<any[]>([]);
   const [masterLoading, setMasterLoading] = useState(true);
 
   const [header, setHeader] = useState<any>({
-    soNumber: "", revision: 1, targetSchedule: getDefaultTargetSchedule(),
-    customerId: "", customerName: "", customerInitial: "", projectId: "", projectInitial: "",
-    city: "", logoId: "", logoUrl: "", markingId: "", markingName: "", markingInitial: "",
-    markingImageUrl: "", templateId: "", templateName: "",
+    soNumber:        "",
+    revision:        1,
+    targetSchedule:  getDefaultTargetSchedule(),
+    customerId:      "",
+    customerName:    "",
+    customerInitial: "",
+    projectId:       "",
+    projectInitial:  "",
+    city:            "",
+    logoId:          "",
+    logoUrl:         "",
+    markingId:       "",
+    markingName:     "",
+    markingInitial:  "",
+    markingImageUrl: "",
+    templateId:      "",
+    templateName:    "",
   });
 
-  const [rows, setRows]         = useState<any[]>([makeEmptyRow()]);
+  const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string, alerts?: string })[]>([makeEmptyRow()]);
   const [errors, setErrors]     = useState<ValidationErrors | null>(null);
   const [generating, setGenerating] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
@@ -501,25 +636,61 @@ export default function ProductionPage() {
       setMasterLoading(true);
       try {
         const [c, proj, cat, k, cs, pvb, gt, p, ep, l, m, t, al] = await Promise.all([
-          getMasterList<Customer>("customers"), getMasterList<Project>("projects"),
-          getMasterList<Category>("categories"), getMasterList<KoG>("kogs"),
-          getMasterList<CutShape>("cutShapes"), getMasterList<PVB>("pvbs"),
-          getMasterList<GlassType>("glassTypes"), getMasterList<Process>("processes"),
-          getMasterList<EdgeProcess>("edgeProcesses"), getMasterList<Logo>("logos"),
-          getMasterList<Marking>("markings"), getTemplates(), getMasterList<any>("alerts"),
+          getMasterList<Customer>("customers"),
+          getMasterList<Project>("projects"),
+          getMasterList<Category>("categories"),
+          getMasterList<KoG>("kogs"),
+          getMasterList<CutShape>("cutShapes"),
+          getMasterList<PVB>("pvbs"),
+          getMasterList<GlassType>("glassTypes"),
+          getMasterList<Process>("processes"),
+          getMasterList<EdgeProcess>("edgeProcesses"),
+          getMasterList<Logo>("logos"),
+          getMasterList<Marking>("markings"),
+          getTemplates(),
+          getMasterList<any>("alerts"),
         ]);
-        setMaster({
-          customers: c, projects: proj, categories: cat, kogs: k, cutShapes: cs,
-          pvbs: pvb, glassTypes: gt, processes: p, edgeProcesses: ep, logos: l,
-          markings: m, templates: t, alerts: al
-        });
-      } catch { toast.error("Master data failed."); }
-      finally { setMasterLoading(false); }
+        setCustomers(c);
+        setProjects(proj);
+        setCategories(cat);
+        setKogs(k);
+        setCutShapes(cs);
+        setPvbs(pvb);
+        setGlassTypes(gt);
+        setProcesses(p);
+        setEdgeProcesses(ep);
+        setLogos(l);
+        setMarkings(m);
+        setTemplates(t);
+        setMasterAlerts(al);
+      } catch {
+        toast.error("Failed to load master data.");
+      } finally {
+        setMasterLoading(false);
+      }
     }
     load();
   }, []);
 
-  function patchHeader(patch: any) { setHeader((h: any) => ({ ...h, ...patch })); }
+  function patchHeader(patch: any) {
+    setHeader((h: any) => ({ ...h, ...patch }));
+  }
+
+  function addRow() { setRows((r) => [...r, makeEmptyRow()]); }
+  function deleteRow(rowId: string) { setRows((rows) => rows.filter((r) => r.rowId !== rowId)); }
+  function updateRow(rowId: string, patch: any) {
+    setRows((rows) => rows.map((r) => r.rowId === rowId ? { ...r, ...patch } : r));
+  }
+  function duplicateRow(rowId: string) {
+    const orig = rows.find((r) => r.rowId === rowId);
+    if (!orig) return;
+    setRows((rows) => {
+      const idx = rows.findIndex((r) => r.rowId === rowId);
+      const next = [...rows];
+      next.splice(idx + 1, 0, { ...orig, rowId: `row_${Date.now()}_dup` });
+      return next;
+    });
+  }
 
   const totalLabels = useMemo(() => rows.reduce((s, r) => s + r.quantity, 0), [rows]);
 
@@ -527,113 +698,146 @@ export default function ProductionPage() {
     setSubmitted(true);
     const errs = validate(header, rows);
     setErrors(errs);
-    if (hasErrors(errs)) { toast.error("Please fix errors."); return; }
+    if (hasErrors(errs)) {
+      toast.error("Please fix the highlighted errors.");
+      document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setGenerating(true);
     try {
-      const batch = await generateBatch(header as BatchHeader, rows, master.processes, user!.uid);
-      toast.success(`Batch generated!`);
+      const batch = await generateBatch(header as BatchHeader, rows, processes, user!.uid);
+      toast.success(`Batch generated! ${batch.totalLabels} labels for SO: ${batch.soNumber}`);
       router.push(`/dashboard/history?batch=${batch.id}`);
-    } catch { toast.error("Failed."); }
-    finally { setGenerating(false); }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Generation failed.");
+    } finally {
+      setGenerating(false);
+    }
   }
+
+  const customerOptions:  Option[] = customers.map((c) => ({ id: c.id, label: c.name, sub: c.initial }));
+  const logoOptions:      Option[] = logos.map((l)    => ({ id: l.id, label: l.name }));
+  const markingOptions:   Option[] = markings.map((m) => ({ id: m.id, label: m.name, sub: m.initial }));
+  const templateOptions:  Option[] = templates.map((t) => ({ id: t.id, label: t.name, sub: `${t.width}×${t.height}mm` }));
 
   return (
     <RouteGuard requiredPage="production">
-      <div className="animate-fade-in max-w-5xl mx-auto pb-20 px-4">
-        
-        <div className="page-header flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+      <div className="animate-fade-in max-w-5xl mx-auto pb-20">
+        <div className="page-header">
           <div>
-            <h1 className="page-title text-2xl font-bold text-white tracking-tight">Production</h1>
-            <p className="page-subtitle text-slate-400 text-sm mt-1">Create a batch of labels for a Sales Order</p>
+            <h1 className="page-title">Production</h1>
+            <p className="page-subtitle">Create a batch of labels for a Sales Order</p>
           </div>
-          <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl px-5 py-3 flex items-center gap-3 backdrop-blur-sm shadow-xl">
-             <Layers size={18} className="text-brand-400" />
-             <span className="text-white font-mono font-bold"><span className="text-brand-400 text-lg">{totalLabels}</span> Total Labels</span>
-          </div>
+          {rows.length > 0 && (
+            <div className="flex items-center gap-2 text-sm text-slate-400 bg-slate-800/60 border border-slate-700/60 rounded-xl px-4 py-2">
+              <FileText size={14} className="text-brand-400" />
+              <span><span className="text-white font-semibold">{rows.length}</span> rows</span>
+              <span className="text-slate-600">·</span>
+              <span><span className="text-white font-semibold">{totalLabels}</span> labels</span>
+            </div>
+          )}
         </div>
 
         {masterLoading ? (
-          <div className="flex items-center justify-center py-24"><RefreshCw size={28} className="animate-spin text-brand-500" /></div>
+          <div className="flex items-center justify-center py-24 gap-3"><RefreshCw size={20} className="animate-spin text-brand-500" /></div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             
-            <SectionCard title="SO Header — Applies to All Labels" icon={Database}>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-6">
-                <div className="space-y-4">
+            <div className="card p-6 bg-slate-900/50 border-slate-800 space-y-6 shadow-xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800">
+                <Database className="text-brand-500" size={18} />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">SO Header — Applies to All Labels</h2>
+              </div>
+
+              <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
+                <div className="flex-1 flex flex-col gap-4">
                   <Field label="SO Number" required error={submitted ? errors?.header.soNumber : undefined}>
-                    <input value={header.soNumber} onChange={e=>patchHeader({soNumber: e.target.value})} placeholder="SO: 2400123" className="input-base h-10 font-mono focus:ring-2 focus:ring-brand-500/20" />
+                    <div data-error={submitted && errors?.header.soNumber ? true : undefined} className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-medium pointer-events-none select-none">SO:</span>
+                      <input value={header.soNumber} onChange={(e) => patchHeader({ soNumber: e.target.value })} placeholder="2400123" className={cn("input-base h-9 pl-9 font-mono", submitted && errors?.header.soNumber && "border-red-500")} />
+                    </div>
                   </Field>
                   <Field label="Customer" required error={submitted ? errors?.header.customerId : undefined}>
-                    <SearchableSelect value={header.customerId} options={master.customers.map(c=>({id:c.id, label:c.name, sub:c.initial}))} onChange={(id, opt)=>patchHeader({customerId:id, customerName:opt?.label, customerInitial:opt?.sub})} placeholder="Search customer…" />
+                    <SearchableSelect value={header.customerId || ""} onChange={(id, opt) => patchHeader({ customerId: id, customerName: opt?.label, customerInitial: opt?.sub })} options={customerOptions} placeholder="Search customer…" />
                   </Field>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field label="Schedule">
-                      <input type="date" value={header.targetSchedule} onChange={e=>patchHeader({targetSchedule: e.target.value})} className="input-base h-10 text-sm focus:ring-2 focus:ring-brand-500/20" />
-                    </Field>
-                    <Field label="Revision">
-                      <NumInput value={header.revision} onChange={v=>patchHeader({revision: v})} min={1} />
-                    </Field>
-                  </div>
-                  <Field label="City">
-                    <input value={header.city} onChange={e=>patchHeader({city: e.target.value})} placeholder="Jakarta" className="input-base h-10 text-sm focus:ring-2 focus:ring-brand-500/20" />
+                  <Field label="Target Schedule" required error={submitted ? errors?.header.targetSchedule : undefined}>
+                    <input type="date" value={header.targetSchedule} onChange={(e) => patchHeader({ targetSchedule: e.target.value })} className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")} />
+                  </Field>
+                  <Field label="City" required error={submitted ? errors?.header.city : undefined}>
+                    <input value={header.city} onChange={(e) => patchHeader({ city: e.target.value })} placeholder="Jakarta" className={cn("input-base h-9", submitted && errors?.header.city && "border-red-500")} />
+                  </Field>
+                  <Field label="Project">
+                    <SearchableSelect value={header.projectId || ""} onChange={(id, opt) => patchHeader({ projectId: id, projectInitial: opt?.sub })} options={projects.map(p => ({ id: p.id, label: p.name, sub: p.initial }))} placeholder="Select project (Optional)" clearable />
                   </Field>
                 </div>
 
-                <div className="space-y-4">
+                <div className="flex-1 flex flex-col gap-4">
                   <Field label="Label Template" required error={submitted ? errors?.header.templateId : undefined}>
-                    <SearchableSelect value={header.templateId} options={master.templates.map(t=>({id:t.id, label:t.name, sub: `${t.width}x${t.height}mm`}))} onChange={(id, opt)=>patchHeader({templateId:id, templateName:opt?.label})} placeholder="Select template…" />
+                    <SearchableSelect value={header.templateId || ""} onChange={(id, opt) => patchHeader({ templateId: id, templateName: opt?.label })} options={templateOptions} placeholder="Select template…" />
                   </Field>
-                  <div className="grid grid-cols-2 gap-4">
-                     <Field label="Marking Stamp">
-                        <SearchableSelect value={header.markingId} options={master.markings.map(m=>({id:m.id, label:m.name, sub:m.initial}))} onChange={(id, opt)=> {
-                           const mark = master.markings.find(x => x.id === id);
-                           patchHeader({markingId:id, markingName:opt?.label, markingInitial:opt?.sub, markingImageUrl: mark?.imageUrl});
-                        }} placeholder="None" clearable />
-                     </Field>
-                     <Field label="Logo">
-                        <SearchableSelect value={header.logoId} options={master.logos.map(l=>({id:l.id, label:l.name}))} onChange={(id, opt)=> {
-                           const log = master.logos.find(x => x.id === id);
-                           patchHeader({logoId:id, logoUrl: log?.imageUrl});
-                        }} placeholder="None" clearable />
-                     </Field>
-                  </div>
-                  <Field label="Project">
-                    <SearchableSelect value={header.projectId} options={master.projects.map(p=>({id:p.id, label:p.name, sub:p.initial}))} onChange={(id, opt)=>patchHeader({projectId:id, projectInitial:opt?.sub})} placeholder="Select project (Optional)" clearable />
+                  <Field label="Marking Stamp">
+                    <SearchableSelect value={header.markingId || ""} onChange={(id, opt) => {
+                      const m = markings.find((mark) => mark.id === id);
+                      patchHeader({ markingId: id, markingName: opt?.label, markingInitial: opt?.sub, markingImageUrl: m?.imageUrl });
+                    }} options={markingOptions} placeholder="None" clearable />
+                  </Field>
+                  <Field label="Logo">
+                    <SearchableSelect value={header.logoId || ""} onChange={(id) => {
+                      const logo = logos.find((l) => l.id === id);
+                      patchHeader({ logoId: id, logoUrl: logo?.imageUrl });
+                    }} options={logoOptions} placeholder="None" clearable />
+                  </Field>
+                  <Field label="Revision">
+                    <NumInput value={header.revision || 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
                   </Field>
                 </div>
               </div>
-            </SectionCard>
+            </div>
 
             <SectionCard title="Line Items — Glass Specifications" icon={Layers}>
-              <div className="space-y-6">
+              <div className="space-y-4">
+                {submitted && errors?.global && (
+                  <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    <AlertCircle size={14} /> {errors.global}
+                  </div>
+                )}
                 {rows.map((row, idx) => (
-                  <LineItemRowCard key={row.rowId} row={row} rowNumber={idx+1} totalRows={rows.length} allProcesses={master.processes} categories={master.categories} kogs={master.kogs} cutShapes={master.cutShapes} glassTypes={master.glassTypes} edgeProcesses={master.edgeProcesses} pvbs={master.pvbs} masterAlerts={master.alerts}
-                    onUpdate={patch => setRows(rows.map(r => r.rowId === row.rowId ? {...r, ...patch} : r))}
-                    onDelete={() => setRows(rows.filter(r => r.rowId !== row.rowId))}
-                    onDuplicate={() => {
-                      const next = [...rows]; const idx = rows.findIndex(r => r.rowId === row.rowId);
-                      next.splice(idx + 1, 0, { ...row, rowId: `row_${Date.now()}_dup` });
-                      setRows(next);
-                    }}
+                  <LineItemRowCard
+                    key={row.rowId}
+                    row={row}
+                    rowNumber={idx + 1}
+                    totalRows={rows.length}
+                    allProcesses={processes}
+                    categories={categories}
+                    kogs={kogs}
+                    cutShapes={cutShapes}
+                    glassTypes={glassTypes}
+                    edgeProcesses={edgeProcesses}
+                    pvbs={pvbs}
+                    masterAlerts={masterAlerts}
+                    onUpdate={(patch) => updateRow(row.rowId, patch)}
+                    onDelete={() => deleteRow(row.rowId)}
+                    onDuplicate={() => duplicateRow(row.rowId)}
                   />
                 ))}
-                <button type="button" onClick={() => setRows([...rows, makeEmptyRow()])} className="w-full py-4 border-2 border-dashed border-slate-800 rounded-2xl text-slate-500 hover:text-brand-400 hover:border-brand-500/50 hover:bg-brand-500/5 transition-all text-sm font-bold flex items-center justify-center gap-2 group">
-                  <Plus size={16} className="group-hover:rotate-90 transition-transform duration-300" /> Add New Line Item
+                <button type="button" onClick={addRow} className="w-full py-4 border-2 border-dashed border-slate-800 rounded-xl text-slate-500 hover:border-brand-500/50 hover:text-brand-400 transition-all text-sm font-medium">
+                  <Plus size={15} className="inline mr-1" /> Add Line Item
                 </button>
               </div>
             </SectionCard>
 
-            <div className="flex items-center justify-between p-5 rounded-2xl bg-slate-900 border border-slate-800 sticky bottom-6 shadow-2xl z-20 backdrop-blur-md bg-slate-900/90">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 sticky bottom-4 shadow-2xl z-20">
               <div>
-                 <p className="text-white font-bold text-sm tracking-tight">{rows.length} Items · <span className="text-brand-400 font-mono">{totalLabels}</span> Total Labels</p>
-                 {header.soNumber && <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-0.5">Order Ref: {header.soNumber}</p>}
+                <p className="text-white font-medium text-sm">
+                  {rows.length} line items · <span className="text-brand-400 font-bold">{totalLabels}</span> labels
+                </p>
+                {header.soNumber && <p className="text-slate-500 text-xs mt-0.5">SO: {header.soNumber}</p>}
               </div>
-              <button onClick={onGenerate} disabled={generating} className="btn-primary px-10 h-11 flex items-center justify-center gap-2 font-bold">
-                 {generating ? <RefreshCw className="animate-spin" size={18} /> : <Printer size={18} />}
-                 {generating ? "Generating..." : "Generate Batch"}
+              <button onClick={onGenerate} disabled={generating} className="btn-primary px-8">
+                {generating ? <RefreshCw className="animate-spin" /> : <Printer size={16} />}
+                Generate Batch
               </button>
             </div>
-
           </div>
         )}
       </div>
