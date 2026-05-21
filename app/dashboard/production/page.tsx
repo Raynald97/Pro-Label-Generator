@@ -509,7 +509,22 @@ function LineItemRowCard({
                 </div>
                 <div className="flex gap-1">
                   {(["B", "T", "L", "R"] as EdgeSide[]).map((side) => (
-                    <button key={side} type="button" disabled={!row.edgeProcessId} onClick={() => toggleSide(side)} className={cn("w-8 h-9 rounded-lg border text-[10px] font-bold transition-all", row.edgeSides.includes(side) ? "bg-brand-600/20 border-brand-500/50 text-brand-300" : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 disabled:opacity-30")}>
+                    <button
+                      key={side}
+                      type="button"
+                      disabled={!row.edgeProcessId}
+                      onClick={() => {
+                        const sides = new Set(row.edgeSides);
+                        if (sides.has(side)) sides.delete(side); else sides.add(side);
+                        onUpdate({ edgeSides: Array.from(sides) as EdgeSide[] });
+                      }}
+                      className={cn(
+                        "w-8 h-9 rounded-lg border text-[10px] font-bold transition-all",
+                        row.edgeSides.includes(side)
+                          ? "bg-brand-600/20 border-brand-500/50 text-brand-300"
+                          : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 disabled:opacity-30"
+                      )}
+                    >
                       {side}
                     </button>
                   ))}
