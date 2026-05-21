@@ -492,7 +492,7 @@ function LineItemRowCard({
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// VALIDATION
+// VALIDATION & HELPERS
 // ════════════════════════════════════════════════════════════════════════════
 
 interface ValidationErrors {
@@ -521,6 +521,15 @@ function validate(header: Partial<BatchHeader>, rows: LineItemRow[]): Validation
   if (rows.length === 0) errors.global = "Add at least one line item.";
 
   return errors;
+}
+
+// Helper to check if any errors exist
+function hasErrors(e: ValidationErrors): boolean {
+  return (
+    Object.keys(e.header).length > 0 ||
+    e.rows.some((r) => Object.keys(r).length > 0) ||
+    e.global !== null
+  );
 }
 
 // ════════════════════════════════════════════════════════════════════════════
