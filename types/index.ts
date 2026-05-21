@@ -479,6 +479,10 @@ export interface LabelRecord {
   markingPosition:    string | null;
   markingOffset:      number | null;
   createdAt:          string;
+  processesInitial:   string;
+  interlayerInitial:  string;
+  cutShapeInitial:    string;
+  projectInitial:     string;
 }
 
 // --- PROCESS MASTER (used in checklist) ---------------------------------------
