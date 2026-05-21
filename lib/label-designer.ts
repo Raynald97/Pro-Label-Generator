@@ -51,7 +51,6 @@ export const DEFAULT_ZOOM = 1.5;
 
 // ════════════════════════════════════════════════════════════════════════════
 // VARIABLE CATALOGUE
-// Central definition of all tokens the Production module will substitute.
 // ════════════════════════════════════════════════════════════════════════════
 
 export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
@@ -231,8 +230,6 @@ export const VARIABLE_DEFINITIONS: VariableDefinition[] = [
 
 // ════════════════════════════════════════════════════════════════════════════
 // ELEMENT FACTORIES
-// Each factory returns a fully-typed element with sensible defaults,
-// positioned at (x, y) in mm.
 // ════════════════════════════════════════════════════════════════════════════
 
 function uid(): string {
@@ -311,22 +308,18 @@ export function makeLineElement(
 // COORDINATE HELPERS
 // ════════════════════════════════════════════════════════════════════════════
 
-/** Snap a mm value to the nearest grid increment */
 export function snapToGrid(mm: number): number {
   return Math.round(mm / GRID_MM) * GRID_MM;
 }
 
-/** Convert mm → pixels at given zoom */
 export function mmToPx(mm: number, zoom = 1): number {
   return mm * MM_TO_PX * zoom;
 }
 
-/** Convert pixels → mm at given zoom */
 export function pxToMm(px: number, zoom = 1): number {
   return px / (MM_TO_PX * zoom);
 }
 
-/** Clamp an element so it never leaves the canvas bounds */
 export function clampElement(
   el: CanvasElement,
   canvasW: number,
@@ -337,7 +330,6 @@ export function clampElement(
   return { x: snapToGrid(x), y: snapToGrid(y) };
 }
 
-/** pt → mm conversion for font sizes */
 export function ptToMm(pt: number): number {
   return pt * 0.352778;
 }
@@ -346,7 +338,6 @@ export function ptToMm(pt: number): number {
 // DISPLAY HELPERS
 // ════════════════════════════════════════════════════════════════════════════
 
-/** Human-readable label for a token or static content */
 export function elementLabel(el: CanvasElement): string {
   if (el.type === "line") return "Line";
   if (el.type === "image") return el.variable ? varLabel(el.variable) : "Static Image";
@@ -359,7 +350,6 @@ function varLabel(token: VariableToken): string {
   return VARIABLE_DEFINITIONS.find((v) => v.token === token)?.label ?? token;
 }
 
-/** Preview text shown inside a text element on the canvas */
 export function previewContent(el: TextElement): string {
   const PREVIEWS: Partial<Record<VariableToken, string>> = {
     "{{so_number}}":       "SO: 2400123",
@@ -403,7 +393,7 @@ export interface HistoryStack {
 
 export function historyPush(stack: HistoryStack, next: CanvasElement[]): HistoryStack {
   return {
-    past:    [...stack.past, stack.present].slice(-50), // keep last 50 states
+    past:    [...stack.past, stack.present].slice(-50),
     present: next,
     future:  [],
   };
@@ -430,7 +420,7 @@ export function historyRedo(stack: HistoryStack): HistoryStack {
 }
 
 // ════════════════════════════════════════════════════════════════════════════
-// FIRESTORE HELPERS (normalise Timestamps → ISO)
+// FIRESTORE HELPERS
 // ════════════════════════════════════════════════════════════════════════════
 
 function normalise(data: DocumentData): DocumentData {
@@ -459,28 +449,18 @@ function normalise(data: DocumentData): DocumentData {
 
 const COL = "labelTemplates";
 
-/** Duplicate a template */
-export async function duplicateTemplate(
-  template: LabelTemplate,
-  newName:  string
-): Promise<LabelTemplate> {
-  const now = new Date().toISOString();
-  
-  // 👇 KITA PISAHKAN id LAMA AGAR TIDAK IKUT TERSIMPAN
-  const { id: _oldId, ...restOfTemplate } = template;
+/** Load all templates */
+export async function getTemplates(): Promise<LabelTemplate[]> {
+  const q    = query(collection(db, COL), orderBy("updatedAt", "desc"));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ ...normalise(d.data()), id: d.id } as LabelTemplate));
+}
 
-  const payload: Omit<LabelTemplate, "id"> = {
-    ...restOfTemplate,
-    name:      newName,
-    createdAt: now,
-    updatedAt: now,
-  };
-  
-  // Give every element a fresh ID to avoid collisions
-  payload.elements = template.elements.map((el) => ({ ...el, id: uid() }));
-  
-  const ref = await addDoc(collection(db, COL), payload);
-  return { id: ref.id, ...payload };
+/** Load a single template by ID */
+export async function getTemplate(id: string): Promise<LabelTemplate | null> {
+  const snap = await getDoc(doc(db, COL, id));
+  if (!snap.exists()) return null;
+  return { ...normalise(snap.data()), id: snap.id } as LabelTemplate;
 }
 
 /** Create a new empty template */
@@ -503,7 +483,7 @@ export async function createTemplate(
   return { id: ref.id, ...payload };
 }
 
-/** Update template metadata (name, description, dimensions) */
+/** Update template metadata */
 export async function updateTemplateMetadata(
   id:   string,
   data: Partial<LabelTemplateFormData>
@@ -514,7 +494,7 @@ export async function updateTemplateMetadata(
   });
 }
 
-/** Save the current canvas elements (called on every Save click) */
+/** Save the current canvas elements */
 export async function saveTemplateElements(
   id:       string,
   elements: CanvasElement[]
@@ -530,15 +510,21 @@ export async function duplicateTemplate(
   template: LabelTemplate,
   newName:  string
 ): Promise<LabelTemplate> {
-  const now     = new Date().toISOString();
+  const now = new Date().toISOString();
+  
+  // BUANG id LAMA
+  const { id: _oldId, ...restOfTemplate } = template;
+
   const payload: Omit<LabelTemplate, "id"> = {
-    ...template,
+    ...restOfTemplate,
     name:      newName,
     createdAt: now,
     updatedAt: now,
   };
-  // Give every element a fresh ID to avoid collisions
+  
+  // Berikan ID baru untuk setiap elemen di dalamnya
   payload.elements = template.elements.map((el) => ({ ...el, id: uid() }));
+  
   const ref = await addDoc(collection(db, COL), payload);
   return { id: ref.id, ...payload };
 }
@@ -547,3 +533,12 @@ export async function duplicateTemplate(
 export async function deleteTemplate(id: string): Promise<void> {
   await deleteDoc(doc(db, COL, id));
 }
+
+/**
+ * MM_TO_PX, GRID_MM, MIN_ELEMENT_MM, DEFAULT_ZOOM, VARIABLE_DEFINITIONS,
+ * makeTextElement, makeImageElement, makeLineElement, snapToGrid, mmToPx,
+ * pxToMm, clampElement, ptToMm, elementLabel, previewContent, historyPush,
+ * historyUndo, historyRedo, HistoryStack, getTemplates, getTemplate,
+ * createTemplate, updateTemplateMetadata, saveTemplateElements,
+ * duplicateTemplate, deleteTemplate
+ */
