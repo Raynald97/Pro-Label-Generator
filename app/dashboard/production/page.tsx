@@ -126,6 +126,7 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
             zIndex: 99999, maxHeight: '260px', display: 'flex', flexDirection: 'column', overflow: 'hidden'
           }}
         >
+          {/* Header Search */}
           <div style={{ padding: '8px', borderBottom: '1px solid #334155', backgroundColor: '#1e293b' }}>
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -143,6 +144,7 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
             </div>
           </div>
 
+          {/* List Options */}
           <div style={{ overflowY: 'auto', backgroundColor: '#1e293b', paddingBottom: '4px' }}>
             {filtered.length === 0 ? (
               <div style={{ padding: '24px 0', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
@@ -570,42 +572,40 @@ export default function ProductionPage() {
   const [templates,     setTemplates]     = useState<LabelTemplate[]>([]);
   const [masterLoading, setMasterLoading] = useState(true);
 
-  // -- Form state -------------------------------------------------------------
   const [header, setHeader] = useState<Partial<BatchHeader> & { 
-  projectId?: string; 
-  projectInitial?: string;
-  alerts?: string;           // Tambahkan ini
-  markingPosition?: string;  // Tambahkan ini
-  markingOffset?: number;    // Tambahkan ini
-}>({
-  soNumber:        "",
-  revision:        1,
-  targetSchedule:  getDefaultTargetSchedule(),
-  customerId:      "",
-  customerName:    "",
-  customerInitial: "",
-  projectId:       "",
-  projectInitial:  "",
-  city:            "",
-  logoId:          "",
-  logoUrl:         "",
-  markingId:       "",
-  markingName:     "",
-  markingInitial:  "",
-  markingImageUrl: "",
-  templateId:      "",
-  templateName:    "",
-  alerts:          "",       // Inisialisasi
-  markingPosition: "BL",     // Inisialisasi
-  markingOffset:   20,       // Inisialisasi
-});
+    projectId?: string, 
+    projectInitial?: string,
+    alerts?: string,
+    markingPosition?: string,
+    markingOffset?: number 
+  }>({
+    soNumber:        "",
+    revision:        1,
+    targetSchedule:  getDefaultTargetSchedule(),
+    customerId:      "",
+    customerName:    "",
+    customerInitial: "",
+    projectId:       "",
+    projectInitial:  "",
+    city:            "",
+    logoId:          "",
+    logoUrl:         "",
+    markingId:       "",
+    markingName:     "",
+    markingInitial:  "",
+    markingImageUrl: "",
+    templateId:      "",
+    templateName:    "",
+    alerts:          "",
+    markingPosition: "BL",
+    markingOffset:   20,
+  });
 
   const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string })[]>([makeEmptyRow()]);
   const [errors, setErrors]     = useState<ValidationErrors | null>(null);
   const [generating, setGenerating] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
 
-  // -- Load all master data in parallel --------------------------------------
   useEffect(() => {
     async function load() {
       setMasterLoading(true);
@@ -645,41 +645,22 @@ export default function ProductionPage() {
     load();
   }, []);
 
-  function patchHeader(patch: Partial<BatchHeader> & { 
-  projectId?: string; 
-  projectInitial?: string;
-  alerts?: string;           // Tambahkan ini
-  markingPosition?: string;  // Tambahkan ini
-  markingOffset?: number;    // Tambahkan ini
-}) {
-  setHeader((h) => ({ ...h, ...patch }));
-}
-  function addRow() {
-    setRows((r) => [...r, makeEmptyRow()]);
+  function patchHeader(patch: any) {
+    setHeader((h) => ({ ...h, ...patch }));
   }
 
-  function updateRow(rowId: string, patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string }>) {
-    setRows((rows) =>
-      rows.map((r) => r.rowId === rowId ? { ...r, ...patch } : r)
-    );
+  function addRow() { setRows((r) => [...r, makeEmptyRow()]); }
+  function deleteRow(rowId: string) { setRows((rows) => rows.filter((r) => r.rowId !== rowId)); }
+  function updateRow(rowId: string, patch: Partial<LineItemRow>) {
+    setRows((rows) => rows.map((r) => r.rowId === rowId ? { ...r, ...patch } : r));
   }
-
-  function deleteRow(rowId: string) {
-    setRows((rows) => rows.filter((r) => r.rowId !== rowId));
-  }
-
   function duplicateRow(rowId: string) {
     const orig = rows.find((r) => r.rowId === rowId);
     if (!orig) return;
-    const copy = {
-      ...orig,
-      rowId:    `row_${Date.now()}_dup`,
-      quantity: orig.quantity,
-    };
     setRows((rows) => {
       const idx = rows.findIndex((r) => r.rowId === rowId);
       const next = [...rows];
-      next.splice(idx + 1, 0, copy);
+      next.splice(idx + 1, 0, { ...orig, rowId: `row_${Date.now()}_dup` });
       return next;
     });
   }
@@ -695,18 +676,10 @@ export default function ProductionPage() {
       document.querySelector("[data-error]")?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-
     setGenerating(true);
     try {
-      const batch = await generateBatch(
-        header as BatchHeader,
-        rows,
-        processes,
-        user!.uid
-      );
-      toast.success(
-        `Batch generated! ${batch.totalLabels} label${batch.totalLabels !== 1 ? "s" : ""} created for SO: ${batch.soNumber}`
-      );
+      const batch = await generateBatch(header as BatchHeader, rows, processes, user!.uid);
+      toast.success(`Batch generated! ${batch.totalLabels} labels for SO: ${batch.soNumber}`);
       router.push(`/dashboard/history?batch=${batch.id}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Generation failed.");
@@ -724,8 +697,6 @@ export default function ProductionPage() {
   return (
     <RouteGuard requiredPage="production">
       <div className="animate-fade-in max-w-5xl mx-auto pb-20">
-
-        {/* -- PAGE HEADER --------------------------------------------------- */}
         <div className="page-header">
           <div>
             <h1 className="page-title">Production</h1>
@@ -742,16 +713,10 @@ export default function ProductionPage() {
         </div>
 
         {masterLoading ? (
-          <div className="flex items-center justify-center py-24 gap-3">
-            <RefreshCw size={20} className="animate-spin text-brand-500" />
-            <span className="text-slate-400 text-sm">Loading master data…</span>
-          </div>
+          <div className="flex items-center justify-center py-24 gap-3"><RefreshCw size={20} className="animate-spin text-brand-500" /></div>
         ) : (
           <div className="space-y-6">
-
-            {/* ══════════════════════════════════════════════════════════════
-                SO HEADER SECTION (NEW RESTRUCTURED)
-                ══════════════════════════════════════════════════════════════ */}
+            
             <div className="card p-6 bg-slate-900/50 border-slate-800 space-y-6 shadow-xl">
               <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800">
                 <Database className="text-brand-500" size={18} />
@@ -759,117 +724,63 @@ export default function ProductionPage() {
               </div>
 
               <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
-                
-                {/* --- SISI KIRI (ORDER INFO) --- */}
                 <div className="flex-1 flex flex-col gap-4">
                   <Field label="SO Number" required error={submitted ? errors?.header.soNumber : undefined}>
                     <div data-error={submitted && errors?.header.soNumber ? true : undefined} className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-medium pointer-events-none select-none">
-                        SO:
-                      </span>
-                      <input
-                        value={header.soNumber ?? ""}
-                        onChange={(e) => patchHeader({ soNumber: e.target.value })}
-                        placeholder="2400123"
-                        className={cn("input-base h-9 pl-9 font-mono", submitted && errors?.header.soNumber && "border-red-500")}
-                      />
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs font-medium pointer-events-none select-none">SO:</span>
+                      <input value={header.soNumber} onChange={(e) => patchHeader({ soNumber: e.target.value })} placeholder="2400123" className={cn("input-base h-9 pl-9 font-mono", submitted && errors?.header.soNumber && "border-red-500")} />
                     </div>
                   </Field>
 
                   <Field label="Customer" required error={submitted ? errors?.header.customerId : undefined}>
-                    <SearchableSelect
-                      value={header.customerId ?? ""}
-                      onChange={(id, opt) => patchHeader({ customerId: id, customerName: opt?.label ?? "", customerInitial: opt?.sub ?? "" })}
-                      options={customerOptions}
-                      placeholder="Search customer…"
-                    />
+                    <SearchableSelect value={header.customerId || ""} onChange={(id, opt) => patchHeader({ customerId: id, customerName: opt?.label, customerInitial: opt?.sub })} options={customerOptions} placeholder="Search customer…" />
+                  </Field>
+
+                  <Field label="City" required error={submitted ? errors?.header.city : undefined}>
+                    <input value={header.city} onChange={(e) => patchHeader({ city: e.target.value })} placeholder="Jakarta" className={cn("input-base h-9", submitted && errors?.header.city && "border-red-500")} />
                   </Field>
 
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Schedule" required error={submitted ? errors?.header.targetSchedule : undefined}>
-                      <input
-                        type="date"
-                        value={header.targetSchedule ?? ""}
-                        onChange={(e) => patchHeader({ targetSchedule: e.target.value })}
-                        className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")}
-                      />
+                      <input type="date" value={header.targetSchedule} onChange={(e) => patchHeader({ targetSchedule: e.target.value })} className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")} />
                     </Field>
                     <Field label="Revision">
-                      <NumInput value={header.revision ?? 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
+                      <NumInput value={header.revision || 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
                     </Field>
                   </div>
-
-                  <Field label="City" required error={submitted ? errors?.header.city : undefined}>
-                    <input
-                      value={header.city ?? ""}
-                      onChange={(e) => patchHeader({ city: e.target.value })}
-                      placeholder="Jakarta"
-                      className={cn("input-base h-9 text-sm", submitted && errors?.header.city && "border-red-500")}
-                    />
-                  </Field>
                 </div>
 
-                {/* --- SISI TENGAH (TEMPLATE & MARKING) --- */}
                 <div className="flex-1 flex flex-col gap-4">
                   <Field label="Label Template" required error={submitted ? errors?.header.templateId : undefined}>
-                    <SearchableSelect
-                      value={header.templateId ?? ""}
-                      onChange={(id, opt) => patchHeader({ templateId: id, templateName: opt?.label ?? "" })}
-                      options={templateOptions}
-                      placeholder="Select template…"
-                    />
+                    <SearchableSelect value={header.templateId || ""} onChange={(id, opt) => patchHeader({ templateId: id, templateName: opt?.label })} options={templateOptions} placeholder="Select template…" />
                   </Field>
-
+                  
                   <div className="grid grid-cols-2 gap-3">
                     <Field label="Marking Position">
-                      <select
-                        value={header.markingPosition}
-                        onChange={(e) => patchHeader({ markingPosition: e.target.value })}
-                        className="input-base h-9 text-sm"
-                      >
-                        {["TL", "TR", "BL", "BR"].map((p) => (
-                          <option key={p} value={p}>{p}</option>
-                        ))}
+                      <select value={header.markingPosition} onChange={(e) => patchHeader({ markingPosition: e.target.value })} className="input-base h-9 text-sm">
+                        {["TL", "TR", "BL", "BR"].map(p => <option key={p} value={p}>{p}</option>)}
                       </select>
                     </Field>
                     <Field label="Offset (mm)">
-                      <NumInput
-                        value={header.markingOffset ?? 20}
-                        step={1}
-                        suffix="mm"
-                        onChange={(v) => patchHeader({ markingOffset: v })}
-                      />
+                      <NumInput value={header.markingOffset || ""} onChange={(v) => patchHeader({ markingOffset: v })} suffix="mm" />
                     </Field>
                   </div>
 
                   <Field label="Marking Stamp">
-                    <SearchableSelect
-                      value={header.markingId ?? ""}
-                      onChange={(id, opt) => {
-                        const m = markings.find((m) => m.id === id);
-                        patchHeader({ markingId: id, markingName: opt?.label ?? "", markingInitial: opt?.sub ?? "", markingImageUrl: m?.imageUrl ?? "" });
-                      }}
-                      options={markingOptions}
-                      placeholder="None"
-                      clearable
-                    />
+                    <SearchableSelect value={header.markingId || ""} onChange={(id, opt) => {
+                      const m = markings.find((mark) => mark.id === id);
+                      patchHeader({ markingId: id, markingName: opt?.label, markingInitial: opt?.sub, markingImageUrl: m?.imageUrl });
+                    }} options={markingOptions} placeholder="None" clearable />
                   </Field>
 
                   <Field label="Logo">
-                    <SearchableSelect
-                      value={header.logoId ?? ""}
-                      onChange={(id) => {
-                        const logo = logos.find((l) => l.id === id);
-                        patchHeader({ logoId: id, logoUrl: logo?.imageUrl ?? "" });
-                      }}
-                      options={logoOptions}
-                      placeholder="None"
-                      clearable
-                    />
+                    <SearchableSelect value={header.logoId || ""} onChange={(id) => {
+                      const logo = logos.find((l) => l.id === id);
+                      patchHeader({ logoId: id, logoUrl: logo?.imageUrl });
+                    }} options={logoOptions} placeholder="None" clearable />
                   </Field>
                 </div>
 
-                {/* --- SISI KANAN (ALERTS) --- */}
                 <div className="flex-1">
                   <div className="space-y-2 h-full flex flex-col">
                     <label className="form-label flex items-center gap-1.5 text-amber-400">
@@ -883,33 +794,16 @@ export default function ProductionPage() {
                     />
                   </div>
                 </div>
-
               </div>
-
-              {/* Snapshot strip */}
-              {(header.customerInitial || header.soNumber) && (
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-800/50">
-                  {header.soNumber && <span className="badge badge-slate font-mono text-xs">SO: {header.soNumber}</span>}
-                  {header.customerInitial && <span className="badge badge-blue">{header.customerInitial}</span>}
-                  {header.markingInitial && <span className="badge bg-violet-500/10 border-violet-500/20 text-violet-400">{header.markingInitial}</span>}
-                  {header.alerts && <span className="badge bg-amber-500/10 border-amber-500/20 text-amber-400">Has Alerts</span>}
-                </div>
-              )}
             </div>
 
-            {/* ══════════════════════════════════════════════════════════════
-                LINE ITEMS SECTION
-                ══════════════════════════════════════════════════════════════ */}
             <SectionCard title="Line Items — Glass Specifications" icon={Layers}>
               <div className="space-y-4">
-
                 {submitted && errors?.global && (
                   <div className="flex items-center gap-2 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                    <AlertCircle size={14} />
-                    {errors.global}
+                    <AlertCircle size={14} /> {errors.global}
                   </div>
                 )}
-
                 {rows.map((row, idx) => (
                   <LineItemRowCard
                     key={row.rowId}
@@ -928,40 +822,29 @@ export default function ProductionPage() {
                     onDuplicate={() => duplicateRow(row.rowId)}
                   />
                 ))}
-
-                <button
-                  type="button"
-                  onClick={addRow}
-                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-slate-800 text-slate-500 hover:border-brand-600/50 hover:text-brand-400 hover:bg-brand-600/5 transition-all text-sm font-medium"
-                >
-                  <Plus size={15} />
-                  Add Line Item
+                <button type="button" onClick={addRow} className="w-full py-4 border-2 border-dashed border-slate-800 rounded-xl text-slate-500 hover:border-brand-500/50 hover:text-brand-400 transition-all text-sm font-medium">
+                  <Plus size={15} className="inline mr-1" /> Add Line Item
                 </button>
               </div>
             </SectionCard>
 
-            {/* ══════════════════════════════════════════════════════════════
-                FLOATING ACTION BAR
-                ══════════════════════════════════════════════════════════════ */}
             <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 sticky bottom-4 shadow-2xl z-20">
               <div>
                 <p className="text-white font-medium text-sm">
-                  {rows.length} line items · <span className="text-brand-400 font-bold">{totalLabels}</span> labels
+                  {rows.length} line items · <span className="text-brand-400 font-bold">{totalLabels}</span> labels will be generated
                 </p>
                 {header.soNumber && <p className="text-slate-500 text-xs mt-0.5">SO: {header.soNumber}</p>}
               </div>
               <button onClick={onGenerate} disabled={generating} className="btn-primary px-8">
-                {generating ? (
-                  <><RefreshCw size={15} className="animate-spin mr-2" /> Generating…</>
-                ) : (
-                  <><Printer size={15} className="mr-2" /> Generate Batch</>
-                )}
+                {generating ? <RefreshCw className="animate-spin" /> : <Printer size={16} />}
+                Generate Batch
               </button>
             </div>
-
           </div>
         )}
       </div>
     </RouteGuard>
   );
+}
+```"
 }
