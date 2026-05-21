@@ -234,6 +234,8 @@ export type MasterCollection =
 // --- VARIABLE TOKENS ---------------------------------------------------------
 export type VariableToken =
   | "{{so_number}}"
+  | "{{alerts}}"
+  | "{{alert_icon}}"
   | "{{cust_name}}"
   | "{{cust_initial}}"
   | "{{project_initial}}"
