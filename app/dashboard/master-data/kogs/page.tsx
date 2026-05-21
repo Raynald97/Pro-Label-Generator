@@ -292,7 +292,7 @@ export default function KoGPage() {
 
                       {/* Tempered Status */}
                       <td>
-                        {k.isTempered ? (
+                        {(k as any).isTempered ? (
                           <span className="flex items-center gap-1.5 text-emerald-400 text-xs font-medium">
                             <CheckCircle2 size={14} />
                             Yes
