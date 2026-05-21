@@ -111,7 +111,6 @@ export interface MasterBase {
   id: string;          // auto-generated, immutable
   name: string;        // required
   initial: string;     // required (short code used on labels)
-  isTempered: boolean;
   createdAt: string;   // ISO string
   updatedAt: string;   // ISO string
 }
@@ -136,7 +135,9 @@ export interface GlassType extends MasterBase {
 export type GlassTypeFormData = Omit<GlassType, "id" | "createdAt" | "updatedAt">;
 
 // --- KOG (Kind of Glass) ------------------------------------------------------
-export interface KoG extends MasterBase {}
+export interface KoG extends MasterBase {
+  isTempered: boolean; // isTempered dipindahkan spesifik HANYA untuk KoG
+}
 export type KoGFormData = Omit<KoG, "id" | "createdAt" | "updatedAt">;
 
 // --- CUT SHAPE ----------------------------------------------------------------
@@ -231,100 +232,89 @@ export type MasterCollection =
 // ════════════════════════════════════════════════════════════════════════════
 
 // --- VARIABLE TOKENS ---------------------------------------------------------
-// These are the placeholder tokens users can drop onto a canvas.
-// At print-time the Production module substitutes real values.
-
 export type VariableToken =
-  // Sales Order fields
   | "{{so_number}}"
   | "{{cust_name}}"
   | "{{cust_initial}}"
   | "{{city}}"
   | "{{target_schedule}}"
   | "{{revision}}"
-  | "{{label_index}}"      // e.g. "1 of 5"
-  // Glass / production fields
+  | "{{label_index}}"      
   | "{{kog_name}}"
   | "{{kog_initial}}"
   | "{{cat_initial}}"
-  | "{{thickness_calc}}"   // formatted as (06+1.52+06)
-  | "{{dimensions}}"       // e.g. 1500x700
+  | "{{thickness_calc}}"   
+  | "{{dimensions}}"       
   | "{{cut_shape}}"
   | "{{process_list}}"
-  | "{{glass_layers}}"     // e.g. L1:DG06 L2:DG06
-  | "{{edge_process}}"     // e.g. FP[B,T,L,R]
-  | "{{marking_code}}"     // e.g. M:SNI[BR8]
-  // Image tokens
+  | "{{glass_layers}}"     
+  | "{{edge_process}}"     
+  | "{{marking_code}}"     
   | "{{qr_code}}"
   | "{{logo}}"
   | "{{marking_image}}"
-  // Static text / line (no substitution)
   | "__static__"
   | "__line__";
 
 export interface VariableDefinition {
   token:       VariableToken;
-  label:       string;         // human-readable name shown in the panel
+  label:       string;         
   category:    "order" | "glass" | "production" | "image" | "static";
   description: string;
   isImage:     boolean;
 }
 
 // --- CANVAS ELEMENTS (discriminated union) ------------------------------------
-// All coordinates and dimensions are stored in mm.
-// The renderer multiplies by MM_TO_PX * zoom to get screen pixels.
-
 export interface BaseElement {
   id:        string;
   type:      "text" | "image" | "line";
-  x:         number;    // mm from left edge
-  y:         number;    // mm from top edge
-  width:     number;    // mm
-  height:    number;    // mm
-  locked:    boolean;   // if true, cannot be dragged/resized in the designer
+  x:         number;    
+  y:         number;    
+  width:     number;    
+  height:    number;    
+  locked:    boolean;   
 }
 
 export interface TextElement extends BaseElement {
   type:        "text";
-  content:     string;           // raw string for static, token for variable
+  content:     string;           
   variable:    VariableToken | null;
-  fontSize:    number;           // pt  (will be converted to mm at render)
+  fontSize:    number;           
   fontFamily:  string;
   fontWeight:  "normal" | "bold";
   fontStyle:   "normal" | "italic";
-  color:       string;           // hex
+  color:       string;           
   align:       "left" | "center" | "right";
-  lineHeight:  number;           // multiplier, default 1.2
-  background:  string | null;    // optional fill hex
-  border:      boolean;          // show border box
+  lineHeight:  number;           
+  background:  string | null;    
+  border:      boolean;          
 }
 
 export interface ImageElement extends BaseElement {
   type:      "image";
-  variable:  VariableToken | null;   // "{{logo}}" | "{{marking_image}}" | null
-  src:       string | null;          // static storage URL when variable is null
+  variable:  VariableToken | null;   
+  src:       string | null;          
   objectFit: "contain" | "cover" | "fill";
 }
 
 export interface LineElement extends BaseElement {
   type:      "line";
   variable:  null;
-  color:     string;    // hex
+  color:     string;    
   direction: "horizontal" | "vertical";
 }
 
 export type CanvasElement = TextElement | ImageElement | LineElement;
 
 // --- TEMPLATE ----------------------------------------------------------------
-
 export interface LabelTemplate {
   id:          string;
   name:        string;
   description: string;
-  width:       number;    // mm
-  height:      number;    // mm
-  background:  string;    // hex, default "#ffffff"
-  showGrid:    boolean;   // stored preference, default true
+  width:       number;    
+  height:      number;    
+  background:  string;    
+  showGrid:    boolean;   
   elements:    CanvasElement[];
   createdAt:   string;
   updatedAt:   string;
@@ -339,19 +329,17 @@ export type LabelTemplateFormData = {
 };
 
 // --- DESIGNER UI STATE (not persisted) ---------------------------------------
-
 export interface DesignerState {
   selectedId:   string | null;
-  zoom:         number;           // 0.5 – 3.0
+  zoom:         number;           
   showGrid:     boolean;
   isDragging:   boolean;
   isResizing:   boolean;
-  history:      CanvasElement[][];  // undo stack  (last = current)
+  history:      CanvasElement[][];  
   historyIndex: number;
 }
 
-// --- PRESET SIZES (quick-select when creating a template) --------------------
-
+// --- PRESET SIZES ------------------------------------------------------------
 export interface PresetSize {
   label:  string;
   width:  number;
@@ -371,87 +359,64 @@ export const PRESET_SIZES: PresetSize[] = [
 // PRODUCTION MODULE TYPES
 // ════════════════════════════════════════════════════════════════════════════
 
-// --- SUB-TYPES ----------------------------------------------------------------
-
 export interface ThicknessCalc {
-  l1: number;            // required, e.g. 6
-  l2: number | null;     // optional interlayer, e.g. 1.52
-  l3: number | null;     // optional second glass, e.g. 6
+  l1: number;            
+  l2: number | null;     
+  l3: number | null;     
 }
 
 export interface GlassLayer {
   glassTypeId:      string;
-  glassTypeInitial: string;  // snapshot
-  glassTypeName:    string;  // snapshot
-  thicknessMm:      number;  // nominal thickness for this ply
+  glassTypeInitial: string;  
+  glassTypeName:    string;  
+  thicknessMm:      number;  
 }
 
 export type EdgeSide = "B" | "T" | "L" | "R";
 
-// --- LINE ITEM ROW (UI state only — not persisted directly) ------------------
-// One row in the Header+LineItems form. Gets exploded into N label documents
-// on "Generate Batch" where N = quantity.
-
+// --- LINE ITEM ROW (UI state only) -------------------------------------------
 export interface LineItemRow {
-  rowId:           string;   // client-side uuid for React key
-
-  // Glass identity
+  rowId:           string;   
   categoryId:      string;
-  categoryInitial: string;   // snapshot
+  categoryInitial: string;   
   kogName:         string;
   kogId:           string;
-  kogInitial:      string;   // snapshot
+  kogInitial:      string;   
   cutShapeId:      string;
-  cutShapeName:    string;   // snapshot
-
-  // Thickness
+  cutShapeName:    string;   
   thickness:       ThicknessCalc;
-
-  // Dimensions
-  dimensionW:      number;   // mm
-  dimensionH:      number;   // mm
-
-  // Glass layers (up to 3 plies for laminated)
+  dimensionW:      number;   
+  dimensionH:      number;   
   glassLayers:     GlassLayer[];
-
-  // Process checklist — array of process IDs that are checked
   checkedProcessIds: string[];
-
-  // Edge process
   edgeProcessId:   string;
-  edgeProcessInitial: string;  // snapshot
+  edgeProcessInitial: string;  
   edgeSides:       EdgeSide[];
-
-  // Marking override per row
-  markingPosition: string;   // "TL"|"TR"|"BL"|"BR"
-  markingOffset:   number;   // mm
-
-  // Quantity
-  quantity:        number;   // number of pieces = number of labels for this row
+  markingPosition: string;   
+  markingOffset:   number;   
+  quantity:        number;   
 }
 
 // --- BATCH HEADER (UI state) --------------------------------------------------
-
 export interface BatchHeader {
   soNumber:       string;
   revision:       number;
-  targetSchedule: string;    // "YYYY-MM-DD"
+  targetSchedule: string;    
   customerId:     string;
-  customerName:   string;    // snapshot
-  customerInitial:string;    // snapshot
+  customerName:   string;    
+  customerInitial:string;    
   city:           string;
   logoId:         string;
-  logoUrl:        string;    // snapshot
+  logoUrl:        string;    
   markingId:      string;
-  markingName:    string;    // snapshot
-  markingInitial: string;    // snapshot
-  markingImageUrl:string;    // snapshot
+  markingName:    string;    
+  markingInitial: string;    
+  markingImageUrl:string;    
   templateId:     string;
-  templateName:   string;    // snapshot
+  templateName:   string;    
 }
 
 // --- FIRESTORE: LABEL BATCH DOCUMENT -----------------------------------------
-
 export interface LabelBatch {
   id:               string;
   soNumber:         string;
@@ -478,50 +443,42 @@ export interface LabelBatch {
 }
 
 // --- FIRESTORE: INDIVIDUAL LABEL DOCUMENT -------------------------------------
-
 export interface LabelRecord {
   id:                 string;
   batchId:            string;
-
-  // Denormalised from header (for printing without joins)
   soNumber:           string;
   revision:           number;
-  labelIndex:         number;    // global 1-based: 1, 2, 3 … totalLabels
+  labelIndex:         number;    
   totalLabels:        number;
-  rowIndex:           number;    // which line item row (0-based)
-  pieceIndex:         number;    // 1-based within the row
-
+  rowIndex:           number;    
+  pieceIndex:         number;    
   customerInitial:    string;
   city:               string;
   targetSchedule:     string;
   logoUrl:            string | null;
   markingImageUrl:    string | null;
-  markingCode:        string | null;   // "M:SNI[BR8]"
+  markingCode:        string | null;   
   templateId:         string;
-
-  // Denormalised from line item
   categoryInitial:    string | null;
   kogName:            string;
   kogInitial:         string;
   cutShapeName:       string;
   thickness:          ThicknessCalc;
-  thicknessFormatted: string;          // "(06+1.52+06)"
+  thicknessFormatted: string;          
   dimensionW:         number;
   dimensionH:         number;
   glassLayers:        GlassLayer[];
   processNames:       string[];
   edgeProcessInitial: string | null;
   edgeSides:          EdgeSide[];
-  edgeFormatted:      string | null;   // "FP[B,T,L,R]"
+  edgeFormatted:      string | null;   
   markingPosition:    string | null;
   markingOffset:      number | null;
-
   createdAt:          string;
 }
 
 // --- PROCESS MASTER (used in checklist) ---------------------------------------
-
 export interface ProcessWithCheck extends Process {
   checked:       boolean;
-  autoChecked:   boolean;  // was set by formula (shown differently in UI)
+  autoChecked:   boolean;  
 }
