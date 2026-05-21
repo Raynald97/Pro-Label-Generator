@@ -236,6 +236,7 @@ export type VariableToken =
   | "{{so_number}}"
   | "{{cust_name}}"
   | "{{cust_initial}}"
+  | "{{project_initial}}"
   | "{{city}}"
   | "{{target_schedule}}"
   | "{{revision}}"
