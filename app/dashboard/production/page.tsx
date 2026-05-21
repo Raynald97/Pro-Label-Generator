@@ -250,10 +250,10 @@ function ProcessChecklist({ items, onChange }: {
 
 function LineItemRowCard({
   row, rowNumber, totalRows,
-  allProcesses, categories, kogs, cutShapes, glassTypes, edgeProcesses, pvbs,
+  allProcesses, categories, kogs, cutShapes, glassTypes, edgeProcesses, pvbs, masterAlerts,
   onUpdate, onDelete, onDuplicate,
 }: {
-  row:            LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string };
+  row:            LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string };
   rowNumber:      number;
   totalRows:      number;
   allProcesses:   Process[];
@@ -263,7 +263,8 @@ function LineItemRowCard({
   glassTypes:     GlassType[];
   edgeProcesses:  EdgeProcess[];
   pvbs:           PVB[];
-  onUpdate:       (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string }>) => void;
+  masterAlerts:   any[];
+  onUpdate:       (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string }>) => void;
   onDelete:       () => void;
   onDuplicate:    () => void;
 }) {
@@ -404,6 +405,24 @@ function LineItemRowCard({
                 <NumInput value={row.dimensionH || ""} onChange={(v) => onUpdate({ dimensionH: v })} placeholder="Height" suffix="H" />
               </div>
             </div>
+
+            {/* PRODUCTION ALERTS - MOVED HERE */}
+            <div className="pt-2">
+               <Field label="Production Alert">
+                <SearchableSelect
+                  value={row.alertId || ""}
+                  options={masterAlerts.map((a) => ({ id: a.id, label: a.name, sub: a.description }))}
+                  onChange={(id, opt) => onUpdate({ alertId: id, alerts: opt?.sub || "" })}
+                  placeholder="Select standard alert for this row..."
+                  clearable
+                />
+              </Field>
+              {row.alerts && (
+                <div className="mt-2 p-2.5 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                  <p className="text-[10px] text-amber-200/80 leading-relaxed italic line-clamp-2">"{row.alerts}"</p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="space-y-5 lg:border-l border-slate-800/50 lg:pl-10">
@@ -484,6 +503,17 @@ function LineItemRowCard({
                 </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-2 gap-5">
+              <Field label="Marking Position">
+                <select value={row.markingPosition} onChange={(e) => onUpdate({ markingPosition: e.target.value })} className="input-base h-9 text-sm">
+                  {["TL", "TR", "BL", "BR"].map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </Field>
+              <Field label="Marking Offset">
+                <NumInput value={row.markingOffset} step={1} suffix="mm" onChange={(v) => onUpdate({ markingOffset: v })} />
+              </Field>
+            </div>
           </div>
         </div>
       )}
@@ -523,7 +553,6 @@ function validate(header: Partial<BatchHeader>, rows: LineItemRow[]): Validation
   return errors;
 }
 
-// Helper to check if any errors exist
 function hasErrors(e: ValidationErrors): boolean {
   return (
     Object.keys(e.header).length > 0 ||
@@ -582,13 +611,9 @@ export default function ProductionPage() {
     markingImageUrl: "",
     templateId:      "",
     templateName:    "",
-    alerts:          "",
-    alertId:         "",
-    markingPosition: "BL",
-    markingOffset:   20,
   });
 
-  const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string })[]>([makeEmptyRow()]);
+  const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string, alertId?: string })[]>([makeEmptyRow()]);
   const [errors, setErrors]     = useState<ValidationErrors | null>(null);
   const [generating, setGenerating] = useState(false);
   const [submitted, setSubmitted]   = useState(false);
@@ -640,7 +665,7 @@ export default function ProductionPage() {
 
   function addRow() { setRows((r) => [...r, makeEmptyRow()]); }
   function deleteRow(rowId: string) { setRows((rows) => rows.filter((r) => r.rowId !== rowId)); }
-  function updateRow(rowId: string, patch: Partial<LineItemRow>) {
+  function updateRow(rowId: string, patch: any) {
     setRows((rows) => rows.map((r) => r.rowId === rowId ? { ...r, ...patch } : r));
   }
   function duplicateRow(rowId: string) {
@@ -678,6 +703,7 @@ export default function ProductionPage() {
   }
 
   const customerOptions:  Option[] = customers.map((c) => ({ id: c.id, label: c.name, sub: c.initial }));
+  const projectOptions:   Option[] = projects.map((p) => ({ id: p.id, label: p.name, sub: p.initial }));
   const logoOptions:      Option[] = logos.map((l)    => ({ id: l.id, label: l.name }));
   const markingOptions:   Option[] = markings.map((m) => ({ id: m.id, label: m.name, sub: m.initial }));
   const templateOptions:  Option[] = templates.map((t) => ({ id: t.id, label: t.name, sub: `${t.width}×${t.height}mm` }));
@@ -719,83 +745,39 @@ export default function ProductionPage() {
                       <input value={header.soNumber} onChange={(e) => patchHeader({ soNumber: e.target.value })} placeholder="2400123" className={cn("input-base h-9 pl-9 font-mono", submitted && errors?.header.soNumber && "border-red-500")} />
                     </div>
                   </Field>
-
                   <Field label="Customer" required error={submitted ? errors?.header.customerId : undefined}>
                     <SearchableSelect value={header.customerId || ""} onChange={(id, opt) => patchHeader({ customerId: id, customerName: opt?.label, customerInitial: opt?.sub })} options={customerOptions} placeholder="Search customer…" />
                   </Field>
-
+                  <Field label="Target Schedule" required error={submitted ? errors?.header.targetSchedule : undefined}>
+                    <input type="date" value={header.targetSchedule} onChange={(e) => patchHeader({ targetSchedule: e.target.value })} className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")} />
+                  </Field>
                   <Field label="City" required error={submitted ? errors?.header.city : undefined}>
                     <input value={header.city} onChange={(e) => patchHeader({ city: e.target.value })} placeholder="Jakarta" className={cn("input-base h-9", submitted && errors?.header.city && "border-red-500")} />
                   </Field>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="Schedule" required error={submitted ? errors?.header.targetSchedule : undefined}>
-                      <input type="date" value={header.targetSchedule} onChange={(e) => patchHeader({ targetSchedule: e.target.value })} className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")} />
-                    </Field>
-                    <Field label="Revision">
-                      <NumInput value={header.revision || 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
-                    </Field>
-                  </div>
+                  <Field label="Project">
+                    <SearchableSelect value={header.projectId || ""} onChange={(id, opt) => patchHeader({ projectId: id, projectInitial: opt?.sub })} options={projectOptions} placeholder="Select project (Optional)" clearable />
+                  </Field>
                 </div>
 
                 <div className="flex-1 flex flex-col gap-4">
                   <Field label="Label Template" required error={submitted ? errors?.header.templateId : undefined}>
                     <SearchableSelect value={header.templateId || ""} onChange={(id, opt) => patchHeader({ templateId: id, templateName: opt?.label })} options={templateOptions} placeholder="Select template…" />
                   </Field>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <Field label="Marking Position">
-                      <select value={header.markingPosition} onChange={(e) => patchHeader({ markingPosition: e.target.value })} className="input-base h-9 text-sm">
-                        {["TL", "TR", "BL", "BR"].map(p => <option key={p} value={p}>{p}</option>)}
-                      </select>
-                    </Field>
-                    <Field label="Offset (mm)">
-                      <NumInput value={header.markingOffset || ""} onChange={(v) => patchHeader({ markingOffset: v })} suffix="mm" />
-                    </Field>
-                  </div>
-
                   <Field label="Marking Stamp">
                     <SearchableSelect value={header.markingId || ""} onChange={(id, opt) => {
                       const m = markings.find((mark) => mark.id === id);
                       patchHeader({ markingId: id, markingName: opt?.label, markingInitial: opt?.sub, markingImageUrl: m?.imageUrl });
                     }} options={markingOptions} placeholder="None" clearable />
                   </Field>
-
                   <Field label="Logo">
                     <SearchableSelect value={header.logoId || ""} onChange={(id) => {
                       const logo = logos.find((l) => l.id === id);
                       patchHeader({ logoId: id, logoUrl: logo?.imageUrl });
                     }} options={logoOptions} placeholder="None" clearable />
                   </Field>
-                </div>
-
-                <div className="flex-1">
-                  <div className="space-y-4 h-full flex flex-col">
-                    <Field label="Production Alert">
-                      <SearchableSelect
-                        value={header.alertId || ""}
-                        options={masterAlerts.map((a) => ({ 
-                          id: a.id, 
-                          label: a.name, 
-                          sub: a.description 
-                        }))}
-                        onChange={(id, opt) => patchHeader({ 
-                          alertId: id, 
-                          alerts: opt?.sub || "" 
-                        })}
-                        placeholder="Select standard alert..."
-                        clearable
-                      />
-                    </Field>
-
-                    {header.alerts && (
-                      <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20">
-                        <p className="text-[11px] text-amber-200 leading-relaxed italic">
-                          "{header.alerts}"
-                        </p>
-                      </div>
-                    )}
-                  </div>
+                  <Field label="Revision">
+                    <NumInput value={header.revision || 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
+                  </Field>
                 </div>
               </div>
             </div>
@@ -820,6 +802,7 @@ export default function ProductionPage() {
                     glassTypes={glassTypes}
                     edgeProcesses={edgeProcesses}
                     pvbs={pvbs}
+                    masterAlerts={masterAlerts}
                     onUpdate={(patch) => updateRow(row.rowId, patch)}
                     onDelete={() => deleteRow(row.rowId)}
                     onDuplicate={() => duplicateRow(row.rowId)}
@@ -834,7 +817,7 @@ export default function ProductionPage() {
             <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 sticky bottom-4 shadow-2xl z-20">
               <div>
                 <p className="text-white font-medium text-sm">
-                  {rows.length} line items · <span className="text-brand-400 font-bold">{totalLabels}</span> labels will be generated
+                  {rows.length} line items · <span className="text-brand-400 font-bold">{totalLabels}</span> labels
                 </p>
                 {header.soNumber && <p className="text-slate-500 text-xs mt-0.5">SO: {header.soNumber}</p>}
               </div>
