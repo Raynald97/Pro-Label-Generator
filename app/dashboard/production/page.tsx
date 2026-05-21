@@ -572,33 +572,33 @@ export default function ProductionPage() {
 
   // -- Form state -------------------------------------------------------------
   const [header, setHeader] = useState<Partial<BatchHeader> & { 
-    projectId?: string, 
-    projectInitial?: string,
-    alerts?: string,
-    markingPosition?: string,
-    markingOffset?: number 
-  }>({
-    soNumber:        "",
-    revision:        1,
-    targetSchedule:  getDefaultTargetSchedule(),
-    customerId:      "",
-    customerName:    "",
-    customerInitial: "",
-    projectId:       "",
-    projectInitial:  "",
-    city:            "",
-    logoId:          "",
-    logoUrl:         "",
-    markingId:       "",
-    markingName:     "",
-    markingInitial:  "",
-    markingImageUrl: "",
-    templateId:      "",
-    templateName:    "",
-    alerts:          "",
-    markingPosition: "BL",
-    markingOffset:   20,
-  });
+  projectId?: string; 
+  projectInitial?: string;
+  alerts?: string;           // Tambahkan ini
+  markingPosition?: string;  // Tambahkan ini
+  markingOffset?: number;    // Tambahkan ini
+}>({
+  soNumber:        "",
+  revision:        1,
+  targetSchedule:  getDefaultTargetSchedule(),
+  customerId:      "",
+  customerName:    "",
+  customerInitial: "",
+  projectId:       "",
+  projectInitial:  "",
+  city:            "",
+  logoId:          "",
+  logoUrl:         "",
+  markingId:       "",
+  markingName:     "",
+  markingInitial:  "",
+  markingImageUrl: "",
+  templateId:      "",
+  templateName:    "",
+  alerts:          "",       // Inisialisasi
+  markingPosition: "BL",     // Inisialisasi
+  markingOffset:   20,       // Inisialisasi
+});
 
   const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string })[]>([makeEmptyRow()]);
   const [errors, setErrors]     = useState<ValidationErrors | null>(null);
@@ -645,10 +645,15 @@ export default function ProductionPage() {
     load();
   }, []);
 
-  function patchHeader(patch: Partial<BatchHeader> & { projectId?: string, projectInitial?: string }) {
-    setHeader((h) => ({ ...h, ...patch }));
-  }
-
+  function patchHeader(patch: Partial<BatchHeader> & { 
+  projectId?: string; 
+  projectInitial?: string;
+  alerts?: string;           // Tambahkan ini
+  markingPosition?: string;  // Tambahkan ini
+  markingOffset?: number;    // Tambahkan ini
+}) {
+  setHeader((h) => ({ ...h, ...patch }));
+}
   function addRow() {
     setRows((r) => [...r, makeEmptyRow()]);
   }
