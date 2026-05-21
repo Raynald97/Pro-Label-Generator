@@ -58,7 +58,7 @@ function Field({ label, required, error, children }: {
   );
 }
 
-// --- SEARCHABLE DROPDOWN (ANTI-BOCOR) ----------------------------------------
+// --- SEARCHABLE DROPDOWN -----------------------------------------------------
 
 interface Option { id: string; label: string; sub?: string; }
 
@@ -126,7 +126,6 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
             zIndex: 99999, maxHeight: '260px', display: 'flex', flexDirection: 'column', overflow: 'hidden'
           }}
         >
-          {/* Header Search */}
           <div style={{ padding: '8px', borderBottom: '1px solid #334155', backgroundColor: '#1e293b' }}>
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -144,7 +143,6 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
             </div>
           </div>
 
-          {/* List Options */}
           <div style={{ overflowY: 'auto', backgroundColor: '#1e293b', paddingBottom: '4px' }}>
             {filtered.length === 0 ? (
               <div style={{ padding: '24px 0', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
@@ -161,14 +159,6 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
                   backgroundColor: o.id === value ? 'rgba(37, 99, 235, 0.2)' : 'transparent',
                   color: o.id === value ? '#93c5fd' : '#cbd5e1', border: 'none', cursor: 'pointer',
                   transition: 'background-color 0.1s'
-                }}
-                onMouseOver={(e) => {
-                  if (o.id !== value) e.currentTarget.style.backgroundColor = '#334155';
-                  e.currentTarget.style.color = '#ffffff';
-                }}
-                onMouseOut={(e) => {
-                  if (o.id !== value) e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.color = o.id === value ? '#93c5fd' : '#cbd5e1';
                 }}
               >
                 <span style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{o.label}</span>
@@ -689,7 +679,6 @@ export default function ProductionPage() {
   }
 
   const customerOptions:  Option[] = customers.map((c) => ({ id: c.id, label: c.name, sub: c.initial }));
-  const projectOptions:   Option[] = projects.map((p) => ({ id: p.id, label: p.name, sub: p.initial }));
   const logoOptions:      Option[] = logos.map((l)    => ({ id: l.id, label: l.name }));
   const markingOptions:   Option[] = markings.map((m) => ({ id: m.id, label: m.name, sub: m.initial }));
   const templateOptions:  Option[] = templates.map((t) => ({ id: t.id, label: t.name, sub: `${t.width}×${t.height}mm` }));
@@ -845,6 +834,4 @@ export default function ProductionPage() {
       </div>
     </RouteGuard>
   );
-}
-```"
 }
