@@ -111,6 +111,7 @@ export interface MasterBase {
   id: string;          // auto-generated, immutable
   name: string;        // required
   initial: string;     // required (short code used on labels)
+  isTempered: boolean;
   createdAt: string;   // ISO string
   updatedAt: string;   // ISO string
 }
