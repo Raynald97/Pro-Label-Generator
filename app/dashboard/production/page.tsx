@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import {
   Plus, Trash2, ChevronDown, ChevronUp, Printer,
   RefreshCw, AlertCircle, CheckSquare, Square,
-  Search, X, Copy, FileText, Layers, Zap,
+  Search, X, Copy, FileText, Layers, Zap, Database, AlertTriangle
 } from "lucide-react";
 import { RouteGuard } from "@/components/layout/RouteGuard";
 import { useAuth } from "@/hooks/useAuth";
@@ -126,7 +126,6 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
             zIndex: 99999, maxHeight: '260px', display: 'flex', flexDirection: 'column', overflow: 'hidden'
           }}
         >
-          {/* Header Search */}
           <div style={{ padding: '8px', borderBottom: '1px solid #334155', backgroundColor: '#1e293b' }}>
             <div style={{ position: 'relative' }}>
               <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -144,7 +143,6 @@ function SearchableSelect({ value, onChange, options, placeholder, disabled, cle
             </div>
           </div>
 
-          {/* List Options */}
           <div style={{ overflowY: 'auto', backgroundColor: '#1e293b', paddingBottom: '4px' }}>
             {filtered.length === 0 ? (
               <div style={{ padding: '24px 0', textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
@@ -217,7 +215,7 @@ function NumInput({ value, onChange, min = 0, step = 1, suffix, className, place
 // ════════════════════════════════════════════════════════════════════════════
 
 function ProcessChecklist({ items, onChange }: {
-  items:    ProcessWithCheck[];
+  items:     ProcessWithCheck[];
   onChange: (id: string, checked: boolean) => void;
 }) {
   if (items.length === 0) {
@@ -263,19 +261,19 @@ function LineItemRowCard({
   allProcesses, categories, kogs, cutShapes, glassTypes, edgeProcesses, pvbs,
   onUpdate, onDelete, onDuplicate,
 }: {
-  row:           LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string };
-  rowNumber:     number;
-  totalRows:     number;
-  allProcesses:  Process[];
-  categories:    Category[];
-  kogs:          KoG[];
-  cutShapes:     CutShape[];
-  glassTypes:    GlassType[];
-  edgeProcesses: EdgeProcess[];
-  pvbs:          PVB[];
-  onUpdate:      (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string }>) => void;
-  onDelete:      () => void;
-  onDuplicate:   () => void;
+  row:            LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string };
+  rowNumber:      number;
+  totalRows:      number;
+  allProcesses:   Process[];
+  categories:     Category[];
+  kogs:           KoG[];
+  cutShapes:      CutShape[];
+  glassTypes:     GlassType[];
+  edgeProcesses:  EdgeProcess[];
+  pvbs:           PVB[];
+  onUpdate:       (patch: Partial<LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string }>) => void;
+  onDelete:       () => void;
+  onDuplicate:    () => void;
 }) {
   const [loadingFormula, setLoadingFormula] = useState(false);
   const [collapsed, setCollapsed]           = useState(false);
@@ -287,8 +285,8 @@ function LineItemRowCard({
 
   async function handleKogChange(id: string, opt: Option | null) {
     const kogInitial = opt?.sub ?? "";
-    const kogName    = opt?.label ?? ""; // <--- Tangkap label aslinya
-    onUpdate({ kogId: id, kogInitial, kogName }); // <--- Masukkan ke state
+    const kogName    = opt?.label ?? "";
+    onUpdate({ kogId: id, kogInitial, kogName });
     if (!id) { onUpdate({ checkedProcessIds: [] }); return; }
 
     setLoadingFormula(true);
@@ -296,7 +294,7 @@ function LineItemRowCard({
       const formula = await getFormulaByKogId(id);
       if (formula) {
         onUpdate({ checkedProcessIds: formula.processIds });
-        toast.info(`Auto-checked ${formula.processIds.length} process${formula.processIds.length !== 1 ? "es" : ""} for ${opt?.label}`);
+        toast.info(`Auto-checked ${formula.processIds.length} processes for ${opt?.label}`);
       } else {
         onUpdate({ checkedProcessIds: [] });
       }
@@ -345,13 +343,10 @@ function LineItemRowCard({
   const cutShapeOptions:    Option[] = cutShapes.map((c)  => ({ id: c.id, label: c.name, sub: c.initial }));
   const glassTypeOptions:   Option[] = glassTypes.map((g) => ({ id: g.id, label: g.name, sub: g.initial }));
   const edgeProcessOptions: Option[] = edgeProcesses.map((e) => ({ id: e.id, label: e.name, sub: e.initial }));
-  
-  // FIX: Menggunakan initial sebagai id agar dropdown bisa mencocokkan value dengan benar
   const pvbOptions:         Option[] = pvbs.map((p) => ({ id: p.initial, label: p.name, sub: p.initial }));
 
   return (
     <div className="card transition-all">
-      {/* -- Row header -------------------------------------------------------- */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-800 bg-slate-800/40">
         <div className="w-6 h-6 rounded-full bg-brand-600/20 border border-brand-600/30 flex items-center justify-center shrink-0">
           <span className="text-brand-400 text-[11px] font-bold">{rowNumber}</span>
@@ -372,31 +367,23 @@ function LineItemRowCard({
         </div>
 
         <div className="flex items-center gap-1">
-          <button onClick={onDuplicate} title="Duplicate row"
-            className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
+          <button onClick={onDuplicate} title="Duplicate row" className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
             <Copy size={12} />
           </button>
           {totalRows > 1 && (
-            <button onClick={onDelete} title="Remove row"
-              className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+            <button onClick={onDelete} title="Remove row" className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-colors">
               <Trash2 size={12} />
             </button>
           )}
-          <button onClick={() => setCollapsed(!collapsed)}
-            className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
+          <button onClick={() => setCollapsed(!collapsed)} className="w-7 h-7 flex items-center justify-center rounded text-slate-500 hover:text-white hover:bg-slate-700 transition-colors">
             {collapsed ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
           </button>
         </div>
       </div>
 
-      {/* -- Row body (2 Columns Grid) ----------------------------------------- */}
       {!collapsed && (
         <div className="p-5 grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
-          
-          {/* SISI KIRI (KOG -> Proses -> Cut Shape/Category -> Dimensi) */}
           <div className="space-y-5">
-            
-            {/* 1. KoG */}
             <Field label="KoG" required>
               <div className="relative">
                 <SearchableSelect value={row.kogId} onChange={handleKogChange} options={kogOptions} placeholder="Select KoG…" />
@@ -404,58 +391,30 @@ function LineItemRowCard({
               </div>
             </Field>
 
-            {/* 2. Processes */}
             <div>
-              <label className="form-label mb-2 flex items-center justify-between">
-                Processes
-                {row.checkedProcessIds.length > 0 && !loadingFormula && (
-                  <span className="text-[10px] text-slate-500 normal-case font-normal">{row.checkedProcessIds.length} selected</span>
-                )}
-              </label>
+              <label className="form-label mb-2 flex items-center justify-between">Processes</label>
               <ProcessChecklist items={checklist} onChange={toggleProcess} />
             </div>
 
-            {/* 3 & 4. Cut Shape & Category */}
             <div className="grid grid-cols-2 gap-4">
               <Field label="Cut Shape" required>
-                <SearchableSelect
-                  value={row.cutShapeId}
-                  onChange={(id, opt) => onUpdate({ cutShapeId: id, cutShapeName: opt?.label ?? "", cutShapeInitial: opt?.sub ?? "" })}
-                  options={cutShapeOptions}
-                  placeholder="Shape…"
-                />
+                <SearchableSelect value={row.cutShapeId} onChange={(id, opt) => onUpdate({ cutShapeId: id, cutShapeName: opt?.label ?? "", cutShapeInitial: opt?.sub ?? "" })} options={cutShapeOptions} placeholder="Shape…" />
               </Field>
               <Field label="Category">
-                <SearchableSelect
-                  value={row.categoryId}
-                  onChange={(id, opt) => onUpdate({ categoryId: id, categoryInitial: opt?.sub ?? "" })}
-                  options={categoryOptions}
-                  placeholder="Optional"
-                  clearable
-                />
+                <SearchableSelect value={row.categoryId} onChange={(id, opt) => onUpdate({ categoryId: id, categoryInitial: opt?.sub ?? "" })} options={categoryOptions} placeholder="Optional" clearable />
               </Field>
             </div>
 
-            {/* 5. Dimensions */}
             <div>
               <label className="form-label">Dimensions <span className="text-red-400">*</span></label>
               <div className="grid grid-cols-2 gap-2">
                 <NumInput value={row.dimensionW || ""} onChange={(v) => onUpdate({ dimensionW: v })} placeholder="Width" suffix="W" />
                 <NumInput value={row.dimensionH || ""} onChange={(v) => onUpdate({ dimensionH: v })} placeholder="Height" suffix="H" />
               </div>
-              {row.dimensionW > 0 && row.dimensionH > 0 && (
-                <p className="mt-2 text-[11px] text-brand-400 font-mono">
-                  Size: {row.dimensionW}×{row.dimensionH}
-                </p>
-              )}
             </div>
-
           </div>
 
-          {/* SISI KANAN (Ketebalan/PVB -> Layers -> Edge -> Marking) */}
-          <div className="space-y-5 border-t lg:border-t-0 lg:border-l border-slate-800/50 pt-5 lg:pt-0 lg:pl-10">
-            
-            {/* 6. Thickness & Interlayer Select */}
+          <div className="space-y-5 lg:border-l border-slate-800/50 lg:pl-10">
             <div>
               <label className="form-label">Thickness <span className="text-red-400">*</span></label>
               <div className="grid grid-cols-3 gap-1.5 mb-2.5">
@@ -491,23 +450,9 @@ function LineItemRowCard({
                   </div>
                 ))}
               </div>
-              
-              <SearchableSelect
-                value={row.interlayerInitial || ""} // FIX: Sekarang matching dengan "id" yang berupa initial
-                onChange={(initial) => onUpdate({ interlayerInitial: initial })} 
-                options={pvbOptions}
-                placeholder="Select Interlayer"
-                clearable
-              />
-
-              {row.thickness.l1 > 0 && (
-                <p className="mt-2 text-[11px] text-brand-400 font-mono">
-                  Total: {formatThickness(row.thickness)}
-                </p>
-              )}
+              <SearchableSelect value={row.interlayerInitial || ""} onChange={(initial) => onUpdate({ interlayerInitial: initial })} options={pvbOptions} placeholder="Select Interlayer" clearable />
             </div>
 
-            {/* 7. Glass Layers */}
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="form-label mb-0">Glass Layers</label>
@@ -522,88 +467,38 @@ function LineItemRowCard({
                   <div key={idx} className="flex items-center gap-2">
                     <span className="text-[11px] text-slate-600 w-5 shrink-0 font-medium">L{idx + 1}</span>
                     <div className="flex-1">
-                      <SearchableSelect
-                        value={layer.glassTypeId}
-                        onChange={(id, opt) => updateLayer(idx, { glassTypeId: id, glassTypeInitial: opt?.sub ?? "", glassTypeName: opt?.label ?? "" })}
-                        options={glassTypeOptions}
-                        placeholder={`L${idx + 1} Glass Type…`}
-                      />
+                      <SearchableSelect value={layer.glassTypeId} onChange={(id, opt) => updateLayer(idx, { glassTypeId: id, glassTypeInitial: opt?.sub ?? "", glassTypeName: opt?.label ?? "" })} options={glassTypeOptions} placeholder={`L${idx + 1} Type…`} />
                     </div>
                     <div className="w-24">
                       <NumInput value={layer.thicknessMm || ""} step={1} suffix="mm" onChange={(v) => updateLayer(idx, { thicknessMm: v })} />
                     </div>
-                    {row.glassLayers.length > 1 && (
-                      <button onClick={() => removeLayer(idx)} className="text-slate-600 hover:text-red-400 transition-colors shrink-0 p-1"><X size={14} /></button>
-                    )}
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* 8 & 9. Edge Process & Sides */}
-            <div className="grid grid-cols-2 gap-5">
-              <Field label="Edge Process">
-                <SearchableSelect
-                  value={row.edgeProcessId}
-                  onChange={(id, opt) => onUpdate({ edgeProcessId: id, edgeProcessInitial: opt?.sub ?? "" })}
-                  options={edgeProcessOptions}
-                  placeholder="None"
-                  clearable
-                />
-              </Field>
-              <div>
-                <label className="form-label">Edge Sides</label>
-                <div className="flex gap-1.5">
+            <div>
+              <label className="form-label">Edge Process</label>
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <SearchableSelect value={row.edgeProcessId} onChange={(id, opt) => onUpdate({ edgeProcessId: id, edgeProcessInitial: opt?.sub ?? "" })} options={edgeProcessOptions} placeholder="None" clearable />
+                </div>
+                <div className="flex gap-1">
                   {(["B", "T", "L", "R"] as EdgeSide[]).map((side) => (
-                    <button
-                      key={side}
-                      type="button"
-                      disabled={!row.edgeProcessId}
-                      onClick={() => toggleSide(side)}
-                      className={cn(
-                        "flex-1 h-9 rounded-lg border text-xs font-bold transition-all",
-                        row.edgeSides.includes(side)
-                          ? "bg-brand-600/20 border-brand-500/50 text-brand-300"
-                          : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 disabled:opacity-30"
-                      )}
-                    >
+                    <button key={side} type="button" disabled={!row.edgeProcessId} onClick={() => toggleSide(side)} className={cn("w-8 h-9 rounded-lg border text-[10px] font-bold transition-all", row.edgeSides.includes(side) ? "bg-brand-600/20 border-brand-500/50 text-brand-300" : "bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500 disabled:opacity-30")}>
                       {side}
                     </button>
                   ))}
                 </div>
               </div>
             </div>
-
-            {/* 10 & 11. Marking Position & Offset */}
-            <div className="grid grid-cols-2 gap-5">
-              <Field label="Marking Position">
-                <select
-                  value={row.markingPosition}
-                  onChange={(e) => onUpdate({ markingPosition: e.target.value })}
-                  className="input-base h-9 text-sm"
-                >
-                  {["TL", "TR", "BL", "BR"].map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Marking Offset">
-                <NumInput
-                  value={row.markingOffset}
-                  step={1}
-                  suffix="mm"
-                  onChange={(v) => onUpdate({ markingOffset: v })}
-                />
-              </Field>
-            </div>
-
           </div>
-
         </div>
       )}
     </div>
   );
 }
+
 // ════════════════════════════════════════════════════════════════════════════
 // VALIDATION
 // ════════════════════════════════════════════════════════════════════════════
@@ -617,11 +512,11 @@ interface ValidationErrors {
 function validate(header: Partial<BatchHeader>, rows: LineItemRow[]): ValidationErrors {
   const errors: ValidationErrors = { header: {}, rows: rows.map(() => ({})), global: null };
 
-  if (!header.soNumber?.trim())    errors.header.soNumber       = "SO Number is required";
-  if (!header.customerId)          errors.header.customerId     = "Customer is required";
-  if (!header.city?.trim())        errors.header.city           = "City is required";
-  if (!header.targetSchedule)      errors.header.targetSchedule = "Target schedule is required";
-  if (!header.templateId)          errors.header.templateId     = "Label template is required";
+  if (!header.soNumber?.trim())       errors.header.soNumber       = "SO Number is required";
+  if (!header.customerId)           errors.header.customerId     = "Customer is required";
+  if (!header.city?.trim())         errors.header.city           = "City is required";
+  if (!header.targetSchedule)       errors.header.targetSchedule = "Target schedule is required";
+  if (!header.templateId)           errors.header.templateId     = "Label template is required";
 
   rows.forEach((row, i) => {
     if (!row.kogId)               errors.rows[i].kogId       = "KoG is required";
@@ -648,8 +543,6 @@ function hasErrors(e: ValidationErrors): boolean {
 // MAIN PAGE
 // ════════════════════════════════════════════════════════════════════════════
 
-const EDGE_SIDES: EdgeSide[] = ["B", "T", "L", "R"];
-
 function getDefaultTargetSchedule() {
   const d = new Date();
   d.setDate(d.getDate() + 2);
@@ -663,7 +556,6 @@ export default function ProductionPage() {
   const router = useRouter();
   const { user } = useAuth();
 
-  // -- Master data ------------------------------------------------------------
   const [customers,     setCustomers]     = useState<Customer[]>([]);
   const [projects,      setProjects]      = useState<Project[]>([]);
   const [categories,    setCategories]    = useState<Category[]>([]);
@@ -679,7 +571,13 @@ export default function ProductionPage() {
   const [masterLoading, setMasterLoading] = useState(true);
 
   // -- Form state -------------------------------------------------------------
-  const [header, setHeader] = useState<Partial<BatchHeader> & { projectId?: string, projectInitial?: string }>({
+  const [header, setHeader] = useState<Partial<BatchHeader> & { 
+    projectId?: string, 
+    projectInitial?: string,
+    alerts?: string,
+    markingPosition?: string,
+    markingOffset?: number 
+  }>({
     soNumber:        "",
     revision:        1,
     targetSchedule:  getDefaultTargetSchedule(),
@@ -697,6 +595,9 @@ export default function ProductionPage() {
     markingImageUrl: "",
     templateId:      "",
     templateName:    "",
+    alerts:          "",
+    markingPosition: "BL",
+    markingOffset:   20,
   });
 
   const [rows, setRows]         = useState<(LineItemRow & { cutShapeInitial?: string, interlayerInitial?: string })[]>([makeEmptyRow()]);
@@ -817,7 +718,7 @@ export default function ProductionPage() {
 
   return (
     <RouteGuard requiredPage="production">
-      <div className="animate-fade-in max-w-5xl mx-auto">
+      <div className="animate-fade-in max-w-5xl mx-auto pb-20">
 
         {/* -- PAGE HEADER --------------------------------------------------- */}
         <div className="page-header">
@@ -828,9 +729,9 @@ export default function ProductionPage() {
           {rows.length > 0 && (
             <div className="flex items-center gap-2 text-sm text-slate-400 bg-slate-800/60 border border-slate-700/60 rounded-xl px-4 py-2">
               <FileText size={14} className="text-brand-400" />
-              <span><span className="text-white font-semibold">{rows.length}</span> row{rows.length !== 1 ? "s" : ""}</span>
+              <span><span className="text-white font-semibold">{rows.length}</span> rows</span>
               <span className="text-slate-600">·</span>
-              <span><span className="text-white font-semibold">{totalLabels}</span> label{totalLabels !== 1 ? "s" : ""}</span>
+              <span><span className="text-white font-semibold">{totalLabels}</span> labels</span>
             </div>
           )}
         </div>
@@ -844,13 +745,17 @@ export default function ProductionPage() {
           <div className="space-y-6">
 
             {/* ══════════════════════════════════════════════════════════════
-                HEADER SECTION (2 COLUMNS SIDE BY SIDE)
+                SO HEADER SECTION (NEW RESTRUCTURED)
                 ══════════════════════════════════════════════════════════════ */}
-            <SectionCard title="SO Header — Applies to All Labels" icon={FileText}>
-              {/* KUNCI PERBAIKAN: Menggunakan lg:flex-row dan flex-1 agar dipaksa membelah 2 */}
+            <div className="card p-6 bg-slate-900/50 border-slate-800 space-y-6 shadow-xl">
+              <div className="flex items-center gap-2.5 pb-4 border-b border-slate-800">
+                <Database className="text-brand-500" size={18} />
+                <h2 className="text-sm font-bold text-white uppercase tracking-wider">SO Header — Applies to All Labels</h2>
+              </div>
+
               <div className="flex flex-col lg:flex-row gap-8 lg:gap-10">
                 
-                {/* --- SISI KIRI (KOLOM 1) --- */}
+                {/* --- SISI KIRI (ORDER INFO) --- */}
                 <div className="flex-1 flex flex-col gap-4">
                   <Field label="SO Number" required error={submitted ? errors?.header.soNumber : undefined}>
                     <div data-error={submitted && errors?.header.soNumber ? true : undefined} className="relative">
@@ -875,14 +780,19 @@ export default function ProductionPage() {
                     />
                   </Field>
 
-                  <Field label="Target Schedule" required error={submitted ? errors?.header.targetSchedule : undefined}>
-                    <input
-                      type="date"
-                      value={header.targetSchedule ?? ""}
-                      onChange={(e) => patchHeader({ targetSchedule: e.target.value })}
-                      className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")}
-                    />
-                  </Field>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Schedule" required error={submitted ? errors?.header.targetSchedule : undefined}>
+                      <input
+                        type="date"
+                        value={header.targetSchedule ?? ""}
+                        onChange={(e) => patchHeader({ targetSchedule: e.target.value })}
+                        className={cn("input-base h-9 text-sm", submitted && errors?.header.targetSchedule && "border-red-500")}
+                      />
+                    </Field>
+                    <Field label="Revision">
+                      <NumInput value={header.revision ?? 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
+                    </Field>
+                  </div>
 
                   <Field label="City" required error={submitted ? errors?.header.city : undefined}>
                     <input
@@ -892,19 +802,9 @@ export default function ProductionPage() {
                       className={cn("input-base h-9 text-sm", submitted && errors?.header.city && "border-red-500")}
                     />
                   </Field>
-
-                  <Field label="Project">
-                    <SearchableSelect
-                      value={header.projectId ?? ""}
-                      onChange={(id, opt) => patchHeader({ projectId: id, projectInitial: opt?.sub ?? "" })}
-                      options={projectOptions}
-                      placeholder="Select project (Optional)"
-                      clearable
-                    />
-                  </Field>
                 </div>
 
-                {/* --- SISI KANAN (KOLOM 2) --- */}
+                {/* --- SISI TENGAH (TEMPLATE & MARKING) --- */}
                 <div className="flex-1 flex flex-col gap-4">
                   <Field label="Label Template" required error={submitted ? errors?.header.templateId : undefined}>
                     <SearchableSelect
@@ -915,7 +815,29 @@ export default function ProductionPage() {
                     />
                   </Field>
 
-                  <Field label="Marking">
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="Marking Position">
+                      <select
+                        value={header.markingPosition}
+                        onChange={(e) => patchHeader({ markingPosition: e.target.value })}
+                        className="input-base h-9 text-sm"
+                      >
+                        {["TL", "TR", "BL", "BR"].map((p) => (
+                          <option key={p} value={p}>{p}</option>
+                        ))}
+                      </select>
+                    </Field>
+                    <Field label="Offset (mm)">
+                      <NumInput
+                        value={header.markingOffset ?? 20}
+                        step={1}
+                        suffix="mm"
+                        onChange={(v) => patchHeader({ markingOffset: v })}
+                      />
+                    </Field>
+                  </div>
+
+                  <Field label="Marking Stamp">
                     <SearchableSelect
                       value={header.markingId ?? ""}
                       onChange={(id, opt) => {
@@ -940,31 +862,35 @@ export default function ProductionPage() {
                       clearable
                     />
                   </Field>
+                </div>
 
-                  <Field label="Revision">
-                    <NumInput value={header.revision ?? 1} min={1} onChange={(v) => patchHeader({ revision: v })} />
-                  </Field>
+                {/* --- SISI KANAN (ALERTS) --- */}
+                <div className="flex-1">
+                  <div className="space-y-2 h-full flex flex-col">
+                    <label className="form-label flex items-center gap-1.5 text-amber-400">
+                      <AlertTriangle size={12} /> Production Alerts / Notes
+                    </label>
+                    <textarea
+                      value={header.alerts}
+                      onChange={(e) => patchHeader({ alerts: e.target.value })}
+                      placeholder="Special instructions for production team..."
+                      className="input-base flex-1 min-h-[150px] lg:min-h-0 py-3 text-sm border-amber-500/20 focus:border-amber-500/50"
+                    />
+                  </div>
                 </div>
 
               </div>
 
-              {/* Snapshot preview strip */}
-              {(header.customerInitial || header.soNumber || header.targetSchedule) && (
-                <div className="flex flex-wrap gap-2 pt-4 mt-6 border-t border-slate-800/50">
+              {/* Snapshot strip */}
+              {(header.customerInitial || header.soNumber) && (
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-slate-800/50">
                   {header.soNumber && <span className="badge badge-slate font-mono text-xs">SO: {header.soNumber}</span>}
                   {header.customerInitial && <span className="badge badge-blue">{header.customerInitial}</span>}
-                  {header.projectInitial && <span className="badge badge-slate">{header.projectInitial}</span>}
-                  {header.revision != null && <span className="badge badge-slate font-mono">R{header.revision}</span>}
-                  {header.targetSchedule && (
-                    <span className="badge badge-slate text-xs">
-                      Ts: {new Date(header.targetSchedule).toLocaleDateString("en-GB", { day: "2-digit", month: "short" })}
-                    </span>
-                  )}
                   {header.markingInitial && <span className="badge bg-violet-500/10 border-violet-500/20 text-violet-400">{header.markingInitial}</span>}
-                  {header.templateName && <span className="badge bg-emerald-500/10 border-emerald-500/20 text-emerald-400">{header.templateName}</span>}
+                  {header.alerts && <span className="badge bg-amber-500/10 border-amber-500/20 text-amber-400">Has Alerts</span>}
                 </div>
               )}
-            </SectionCard>
+            </div>
 
             {/* ══════════════════════════════════════════════════════════════
                 LINE ITEMS SECTION
@@ -1001,7 +927,7 @@ export default function ProductionPage() {
                 <button
                   type="button"
                   onClick={addRow}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-slate-800 text-slate-500 hover:border-brand-600/50 hover:text-brand-400 hover:bg-brand-600/5 transition-all text-sm font-medium"
+                  className="w-full flex items-center justify-center gap-2 py-4 rounded-xl border-2 border-dashed border-slate-800 text-slate-500 hover:border-brand-600/50 hover:text-brand-400 hover:bg-brand-600/5 transition-all text-sm font-medium"
                 >
                   <Plus size={15} />
                   Add Line Item
@@ -1010,22 +936,20 @@ export default function ProductionPage() {
             </SectionCard>
 
             {/* ══════════════════════════════════════════════════════════════
-                GENERATE BUTTON
+                FLOATING ACTION BAR
                 ══════════════════════════════════════════════════════════════ */}
             <div className="flex items-center justify-between p-4 rounded-xl bg-slate-900 border border-slate-800 sticky bottom-4 shadow-2xl z-20">
               <div>
                 <p className="text-white font-medium text-sm">
-                  {rows.length} line item{rows.length !== 1 ? "s" : ""} ·{" "}
-                  <span className="text-brand-400 font-bold">{totalLabels}</span>{" "}
-                  label{totalLabels !== 1 ? "s" : ""} will be generated
+                  {rows.length} line items · <span className="text-brand-400 font-bold">{totalLabels}</span> labels
                 </p>
                 {header.soNumber && <p className="text-slate-500 text-xs mt-0.5">SO: {header.soNumber}</p>}
               </div>
-              <button onClick={onGenerate} disabled={generating} className="btn-primary px-6">
+              <button onClick={onGenerate} disabled={generating} className="btn-primary px-8">
                 {generating ? (
-                  <><RefreshCw size={15} className="animate-spin" /> Generating…</>
+                  <><RefreshCw size={15} className="animate-spin mr-2" /> Generating…</>
                 ) : (
-                  <><Printer size={15} /> Generate Batch</>
+                  <><Printer size={15} className="mr-2" /> Generate Batch</>
                 )}
               </button>
             </div>
