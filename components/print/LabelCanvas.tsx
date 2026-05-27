@@ -92,17 +92,18 @@ function ElementRenderer({
   }
 
   // -- Image ----------------------------------------------------------------
-  // -- Image ----------------------------------------------------------------
+// -- Image ----------------------------------------------------------------
 if (el.type === "image") {
   const img = el as ImageElement;
   if (content) {
     return (
-      <div style={css}>
+      <div style={{ ...css, position: "relative" }}> {/* 👈 Ensure relative is here */}
         <Image
           src={content}
           alt="Label element"
-          fill // Required: makes the image fill the container div
-          unoptimized // Bypasses Next.js optimization server for external Firebase/Wikimedia URLs
+          fill
+          priority // 👈 Forces high-priority loading for mobile
+          unoptimized
           style={{
             objectFit: img.objectFit as any,
           }}
