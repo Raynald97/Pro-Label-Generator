@@ -15,6 +15,7 @@
  */
 
 import React from "react";
+import Image from "next/image";
 import type { LabelRecord, LabelTemplate, CanvasElement, TextElement, ImageElement, LineElement } from "@/types";
 import {
   resolveTokens,
@@ -91,37 +92,35 @@ function ElementRenderer({
   }
 
   // -- Image ----------------------------------------------------------------
-  if (el.type === "image") {
-    const img = el as ImageElement;
-    if (content) {
-      return (
-        <div style={css}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={content}
-            crossOrigin="anonymous"
-            alt=""
-            style={{
-              width:      "100%",
-              height:     "100%",
-              objectFit:  img.objectFit,
-              display:    "block",
-            }}
-          />
-        </div>
-      );
-    }
-    // Placeholder when no image URL resolved (e.g. no logo selected)
+  // -- Image ----------------------------------------------------------------
+if (el.type === "image") {
+  const img = el as ImageElement;
+  if (content) {
     return (
-      <div
-        style={{
-          ...css,
-          border:     `${Math.max(0.5, scale * 0.5)}px dashed #cbd5e1`,
-          background: "#f1f5f9",
-        }}
-      />
+      <div style={css}>
+        <Image
+          src={content}
+          alt="Label element"
+          fill // Required: makes the image fill the container div
+          unoptimized // Bypasses Next.js optimization server for external Firebase/Wikimedia URLs
+          style={{
+            objectFit: img.objectFit as any,
+          }}
+        />
+      </div>
     );
   }
+  // Placeholder when no image URL resolved
+  return (
+    <div
+      style={{
+        ...css,
+        border: `${Math.max(0.5, scale * 0.5)}px dashed #cbd5e1`,
+        background: "#f1f5f9",
+      }}
+    />
+  );
+}
 
   // -- Text ----------------------------------------------------------------
   const txt = el as TextElement;
