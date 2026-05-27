@@ -426,6 +426,7 @@ function LineItemRowCard({
                     <img 
                       src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Google_Alerts_icon.svg/512px-Google_Alerts_icon.svg.png" 
                       alt="Alert" 
+                      crossOrigin="anonymous"
                       className="w-5 h-5" 
                     />
                   </div>

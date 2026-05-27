@@ -99,6 +99,7 @@ function ElementRenderer({
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={content}
+            crossOrigin="anonymous"
             alt=""
             style={{
               width:      "100%",
