@@ -96,20 +96,37 @@ function ElementRenderer({
     const img = el as ImageElement;
     if (content) {
       return (
-        <div style={css}>
-          {/* Using a standard HTML img tag to bypass mobile optimization bugs */}
+        <div style={{ ...css, border: "1px solid red", position: "relative" }}>
+          
+          {/* 🔴 TEMPORARY DIAGNOSTIC LINK 🔴 */}
+          <a 
+            href={content} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            style={{
+              position: "absolute",
+              zIndex: 9999,
+              backgroundColor: "yellow",
+              color: "black",
+              fontSize: "12px",
+              padding: "2px",
+              fontWeight: "bold",
+              top: 0,
+              left: 0
+            }}
+          >
+            TAP TO TEST
+          </a>
+
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={content}
             alt="Logo"
-            loading="eager"
             style={{
               width:      "100%",
               height:     "100%",
               objectFit:  img.objectFit as any,
               display:    "block",
-              WebkitPrintColorAdjust: "exact",
-              printColorAdjust: "exact", 
             }}
           />
         </div>
