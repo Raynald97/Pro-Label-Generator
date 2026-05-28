@@ -91,37 +91,38 @@ function ElementRenderer({
     return <div style={css} />;
   }
 
-  // -- Image ----------------------------------------------------------------
 // -- Image ----------------------------------------------------------------
-if (el.type === "image") {
-  const img = el as ImageElement;
-  if (content) {
+  if (el.type === "image") {
+    const img = el as ImageElement;
+    if (content) {
+      return (
+        <div style={css}>
+          {/* Using a standard HTML img tag to bypass mobile optimization bugs */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={content}
+            alt="Logo"
+            style={{
+              width:      "100%",
+              height:     "100%",
+              objectFit:  img.objectFit as any,
+              display:    "block",
+            }}
+          />
+        </div>
+      );
+    }
+    // Placeholder when no image URL resolved (e.g. no logo selected)
     return (
-      <div style={{ ...css, position: "relative" }}> {/* 👈 Ensure relative is here */}
-        <Image
-          src={content}
-          alt="Label element"
-          fill
-          priority // 👈 Forces high-priority loading for mobile
-          unoptimized
-          style={{
-            objectFit: img.objectFit as any,
-          }}
-        />
-      </div>
+      <div
+        style={{
+          ...css,
+          border:     `${Math.max(0.5, scale * 0.5)}px dashed #cbd5e1`,
+          background: "#f1f5f9",
+        }}
+      />
     );
   }
-  // Placeholder when no image URL resolved
-  return (
-    <div
-      style={{
-        ...css,
-        border: `${Math.max(0.5, scale * 0.5)}px dashed #cbd5e1`,
-        background: "#f1f5f9",
-      }}
-    />
-  );
-}
 
   // -- Text ----------------------------------------------------------------
   const txt = el as TextElement;
