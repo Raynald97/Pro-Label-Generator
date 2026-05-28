@@ -17,7 +17,7 @@
  *
  * Printing flow:
  *   1. Component mounts and injects @page CSS into <head>
- *   2. After 300ms (fonts settle), window.print() is called
+ *   2. After 350-800ms (fonts settle + image load), window.print() is called
  *   3. onClose() fires after print dialog closes
  */
 
@@ -86,6 +86,15 @@ export function PrintSheet({ labels, template, batch, onClose }: Props) {
           page-break-after:  avoid;
           break-after:       avoid;
         }
+
+        /* Image print fix for mobile */
+        img {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+          max-width: 100%;
+          height: auto;
+          display: block;
+        }
       }
 
       /* Screen preview overlay */
@@ -126,12 +135,16 @@ export function PrintSheet({ labels, template, batch, onClose }: Props) {
     document.head.appendChild(style);
     styleRef.current = style;
 
-    // -- 2. Auto-print after fonts settle ----------------------------------
+    // -- 2. Auto-print after fonts settle + image load ----------------------
+    // Increase delay for mobile devices to allow images to load
+    const isMobile = /mobile|android|iphone|tablet/i.test(navigator.userAgent);
+    const delay = isMobile ? 800 : 350;
+    
     const t = setTimeout(() => {
       window.print();
       // onClose after print dialog dismisses
       window.addEventListener("afterprint", onClose, { once: true });
-    }, 350);
+    }, delay);
 
     return () => {
       clearTimeout(t);

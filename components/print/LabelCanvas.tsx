@@ -102,11 +102,14 @@ function ElementRenderer({
           <img
             src={content}
             alt="Logo"
+            loading="eager"
             style={{
               width:      "100%",
               height:     "100%",
               objectFit:  img.objectFit as any,
               display:    "block",
+              WebkitPrintColorAdjust: "exact",
+              printColorAdjust: "exact", 
             }}
           />
         </div>
